@@ -1,1 +1,4 @@
-add_executable(hello main.cpp)
+add_executable(
+	hello 
+	main.cpp
+)
