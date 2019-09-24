@@ -1,0 +1,3 @@
+[submodule "vendor/CImg"]
+	path = vendor/CImg
+	url = https://framagit.org/dtschump/CImg
