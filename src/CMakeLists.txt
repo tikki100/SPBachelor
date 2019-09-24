@@ -7,4 +7,4 @@ add_executable(
 	main.cpp
 )
 
-target_link_libraries(${program} ${SYSTEM_LIBS} )
+#target_link_libraries(${program} ${SYSTEM_LIBS} )

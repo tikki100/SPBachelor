@@ -14,4 +14,4 @@ endif()
 
 add_subdirectory(src)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_FILE_PATH})
+#list(APPEND CMAKE_MODULE_PATH ${CMAKE_FILE_PATH})
