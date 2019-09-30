@@ -41,21 +41,35 @@ bool Maze::FindPoints()
     	//std::cout << "x:" << x << " y:" << y << " R:"<< (int)(*this->img)(x,y, 0) << "G:" << (int)(*this->img)(x,y, 1) << "B" << (int)(*this->img)(x,y, 2) << std::endl;
     	
         if(this->IsColor(x,y,0,255,0)){
-        	this->Sx = x;
-        	this->Sy = y;
-        	std::cout << "Found starting pixel at " << x << "," << y << std::endl;
+        	if(this->Sx == -1 && this->Sy == -1){
+				this->Sx = x;
+	        	this->Sy = y;
+	        	std::cout << "Found starting pixel at " << x << "," << y << std::endl;
+        	}
+        	else
+        	{
+        		throw std::invalid_argument( "Image contained more than one starting point" );
+        	}
         }
         else if(this->IsColor(x,y,0,0,255)){
-        	this->Ex = x;
-        	this->Ey = y;
-        	std::cout << "Found end pixel at " << x << "," << y << std::endl;
+        	if(this->Ex == -1 && this->Ey == -1){
+	        	this->Ex = x;
+	        	this->Ey = y;
+	        	std::cout << "Found end pixel at " << x << "," << y << std::endl;
+	       	}
+	       	else
+	       	{
+	       		throw std::invalid_argument( "Image contained more than one ending point" );
+	       	}
         }
-        if(this->Sx > -1 && this->Ex > -1){
+        //In theory, we could break out early - but doing so, wouldn't ensure against
+        //multiple starting- or ending points. 
+        /*if(this->Sx > -1 && this->Ex > -1){
         	std::cout << "Breaking" << std::endl;
         	x = this->img->width();
         	y = this->img->height();
         	break;
-        }
+        }*/
     }
     if(this->Sx > -1
     	&& this-> Sy > -1
