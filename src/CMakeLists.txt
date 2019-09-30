@@ -5,8 +5,9 @@ include_directories( ${CIMG_H_PATH} )
 add_executable(
 	${program} 
 	main.cpp
+	classMaze.cpp
 )
 
 #target_link_libraries(${program} ${SYSTEM_LIBS} )
 
-target_link_libraries(${program} ${X11_LIBRARIES} ${JPEG_LIBRARIES})
+target_link_libraries(${program} ${X11_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES})

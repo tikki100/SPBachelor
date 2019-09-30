@@ -14,5 +14,6 @@ endif()
 
 include("${CMAKE_FILE_PATH}/FindX11.cmake")
 include("${CMAKE_FILE_PATH}/FindLibJPEG.cmake")
+include("${CMAKE_FILE_PATH}/FindLibPNG.cmake")
 
 add_subdirectory(src)
