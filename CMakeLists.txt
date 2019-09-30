@@ -12,6 +12,7 @@ if(APPLE)
    include_directories(AFTER "/opt/X11/include")
 endif()
 
-add_subdirectory(src)
+include("${CMAKE_FILE_PATH}/FindX11.cmake")
+include("${CMAKE_FILE_PATH}/FindLibJPEG.cmake")
 
-#list(APPEND CMAKE_MODULE_PATH ${CMAKE_FILE_PATH})
+add_subdirectory(src)

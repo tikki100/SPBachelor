@@ -8,3 +8,5 @@ add_executable(
 )
 
 #target_link_libraries(${program} ${SYSTEM_LIBS} )
+
+target_link_libraries(${program} ${X11_LIBRARIES} ${JPEG_LIBRARIES})
