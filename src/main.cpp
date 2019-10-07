@@ -14,7 +14,11 @@ int main(int argc, const char** argv)
 
     Eng::Maze Maze(img);
 
-    Maze.Display();
+    //const unsigned char test[] = Maze.GetColor(0,0);
+
+    //std::cout << "Test: " << test[0] << test[1] << test[2] << std::endl;
+
+    printf("End \n");
 
     return 0;
 }

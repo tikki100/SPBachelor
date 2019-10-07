@@ -120,18 +120,24 @@ bool Maze::IsWalkable(unsigned int x, unsigned int y)
 
 bool Maze::IsColor(unsigned int x, unsigned int y, unsigned char r, unsigned char g, unsigned char b)
 {
-	const unsigned char color[] = {r, g, b};
+	std::array<unsigned char, 3> color = {r, g, b};
 	return this->IsColor(x, y, color);
 }
 
-bool Maze::IsColor(unsigned int x, unsigned int y, const unsigned char color[3])
+bool Maze::IsColor(unsigned int x, unsigned int y, std::array<unsigned char, 3> color)
 {
-	if((*this->img)(x,y, 0) == color[0]
-        && (*this->img)(x,y,1) == color[1]
-        && (*this->img)(x,y,2) == color[2]){
+	std::array<unsigned char, 3> _checkColor = this->GetColor(x,y); 
+	if(_checkColor[0] == color[0]
+        && _checkColor[1] == color[1]
+        && _checkColor[2] == color[2]){
 		return true;
 	}
 	return false;
+}
+
+std::array<unsigned char, 3> Maze::GetColor(unsigned int x, unsigned int y)
+{
+	return {(*this->img)(x,y, 0), (*this->img)(x,y, 1), (*this->img)(x,y, 2)};
 }
 
 int Maze::GetStartX(){ return this->_Sx;}
@@ -141,5 +147,10 @@ int Maze::GetStartY(){ return this->_Sy;}
 int Maze::GetEndX(){ return this->_Ex;}
 
 int Maze::GetEndY(){ return this->_Ey;}
+
+void Maze::RunBreadth()
+{
+
+}
 
 }//End of namespace Eng

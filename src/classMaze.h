@@ -4,6 +4,7 @@
 #include "CImg.h"
 using namespace cimg_library;
 #include <iostream>
+#include <array>
 
 namespace Eng
 {
@@ -67,13 +68,52 @@ public:
 	 *\return True if the pixel is the color, false otherwise
 	 */
 	bool IsColor(unsigned int x, unsigned int y, unsigned char r, unsigned char g, unsigned char b);
-	/**
+    /**
 	 *Tests if a pixel is a specific color
 	 *\param x The x-coordinate of the pixel
 	 *\param y The y-coordinate of the pixel
-	 *\param color An unsigned char array of length 3 containing the colors in the following order: {r, g, b}
+	 *\param color A const unsigned char array of length 3 containing the colors in the following order: {r, g, b}
+	 *\return True if the pixel is the color, false otherwise
 	 */
-	bool IsColor(unsigned int x, unsigned int y, const unsigned char color[3]);
+
+	bool IsColor(unsigned int x, unsigned int y, std::array<unsigned char, 3> color);
+
+	/**
+	 *Gets a color at a specific location
+	 *\param x The x-coordinate of the pixel
+	 *\param y The y-coordinate of the pixel
+	 *\return color An unsigned char array of length 3 containing the colors in the following order: {r, g, b}
+	 */
+	std::array<unsigned char, 3> GetColor(unsigned int x, unsigned int y);
+
+	/**
+	 * Runs all shortest path algorithms
+	 * Runs Breadth first, Dijkstra, A*, HPA* and JPS.
+	 */
+	void RunAll();
+
+	/**
+	 * Runs Breadth First Search for the shortest path on the current maze.
+	 */
+	void RunBreadth();
+	/**
+	 * Runs Dijsktra shortest path algorithm on the current maze.
+	 */
+	void RunDijkstra();
+	/**
+	 * Runs A* shortest path algorithm on the current maze.
+	 */
+	void RunAStar();
+	/**
+	 * Runs HPA* shortest path algorithm on the current maze.
+	 */
+	void RunHPAStar();
+	/**
+	 * Runs JPS* shortest path algorithm on the current maze.
+	 */
+	void RunJPS();
+
+
 
 private:
 	CImg<unsigned char> *img;
