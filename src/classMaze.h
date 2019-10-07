@@ -5,6 +5,8 @@
 using namespace cimg_library;
 #include <iostream>
 #include <array>
+#include <queue>
+#include <map>
 
 namespace Eng
 {
@@ -26,7 +28,7 @@ public:
 	virtual ~Maze();
 
     /**
-	 *Displays the current maze
+	 *Displays the current maze with any alterations.
 	 */
 	void Display();
 
@@ -58,6 +60,12 @@ public:
 	 *\return True if the pixel is walkable, false if it's a wall
 	 */
 	bool IsWalkable(unsigned int x, unsigned int y);
+    /**
+	 *Tests if a pixel is a wall or not.
+	 *\param coords An unsigned int array which contains an x- and y value in the following order: {x,y}
+	 *\return True if the pixel is walkable, false if it's a wall
+	 */
+	bool IsWalkable(std::array<unsigned int, 2> coords);
 	/**
 	 *Tests if a pixel is a specific color
 	 *\param x The x-coordinate of the pixel
@@ -68,6 +76,14 @@ public:
 	 *\return True if the pixel is the color, false otherwise
 	 */
 	bool IsColor(unsigned int x, unsigned int y, unsigned char r, unsigned char g, unsigned char b);
+
+	/**
+	 *Tests if a pixel is a specific color
+	 *\param coords An unsigned int array with an x- and y coordinate in the following order: {x,y}
+	 *\param color A const unsigned char array of length 3 containing the colors in the following order: {r, g, b}
+	 *\return True if the pixel is the color, false otherwise
+	 */
+	bool IsColor(std::array<unsigned int, 2> coords, std::array<unsigned char, 3> color);
     /**
 	 *Tests if a pixel is a specific color
 	 *\param x The x-coordinate of the pixel
@@ -75,7 +91,6 @@ public:
 	 *\param color A const unsigned char array of length 3 containing the colors in the following order: {r, g, b}
 	 *\return True if the pixel is the color, false otherwise
 	 */
-
 	bool IsColor(unsigned int x, unsigned int y, std::array<unsigned char, 3> color);
 
 	/**
@@ -84,7 +99,7 @@ public:
 	 *\param y The y-coordinate of the pixel
 	 *\return color An unsigned char array of length 3 containing the colors in the following order: {r, g, b}
 	 */
-	std::array<unsigned char, 3> GetColor(unsigned int x, unsigned int y);
+	const std::array<unsigned char, 3> GetColor(unsigned int x, unsigned int y);
 
 	/**
 	 * Runs all shortest path algorithms
@@ -95,7 +110,7 @@ public:
 	/**
 	 * Runs Breadth First Search for the shortest path on the current maze.
 	 */
-	void RunBreadth();
+	void RunBreadth(bool display = false);
 	/**
 	 * Runs Dijsktra shortest path algorithm on the current maze.
 	 */
@@ -113,10 +128,13 @@ public:
 	 */
 	void RunJPS();
 
+	void Test();
+
 
 
 private:
 	CImg<unsigned char> *img;
+	CImg<unsigned char> *imgBackup;
 	/**
 	 *Verifies that the maze is valid
 	 * Verifies that theres a starting - and an endpoint, as well as 3 channels (RGB). 
@@ -129,13 +147,33 @@ private:
 	 */
 	bool FindPoints();
 
-	unsigned int _Sx;
-	unsigned int _Sy;
+	/**
+	 * Runs a step on Breadth First shortest path.
+	 */
+	void BreadthStep(std::queue<std::array<unsigned int, 2>>& queue,
+		             std::map<std::array<unsigned int, 2>, std::array<unsigned int, 2>>& came_from);
 
-	unsigned int _Ex;
-	unsigned int _Ey;
+	/**
+	 *Color a pixel at a location
+	 *\param coords An unsigned int array with an x- and y coordinate in the following order: {x,y}
+	 *\param color A const unsigned char array of length 3 containing the colors in the following order: {r, g, b}
+	 */
+	void ColorPixel(std::array<unsigned int,2> coords, std::array<unsigned char, 3> color);
+    /**
+	 *Color a pixel at a location
+	 *\param x The x-coordinate of the pixel
+	 *\param y The y-coordinate of the pixel
+	 *\param color A const unsigned char array of length 3 containing the colors in the following order: {r, g, b}
+	 */
+	void ColorPixel(unsigned int x, unsigned int y, std::array<unsigned char, 3> color);
 
-	bool _startFound;
-	bool _endFound;
+	unsigned int m_Sx;
+	unsigned int m_Sy;
+
+	unsigned int m_Ex;
+	unsigned int m_Ey;
+
+	bool m_startFound;
+	bool m_endFound;
 };
 } //End of namespace Eng
