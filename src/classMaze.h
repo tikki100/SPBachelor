@@ -56,17 +56,24 @@ public:
 	 *\param y The y-coordinate of the pixel
 	 *\return True if the pixel is walkable, false if it's a wall
 	 */
-	bool IsWalkable(int x, int y);
+	bool IsWalkable(unsigned int x, unsigned int y);
 	/**
 	 *Tests if a pixel is a specific color
 	 *\param x The x-coordinate of the pixel
 	 *\param y The y-coordinate of the pixel
-	 *\param red A value between 0-255 for the red pixel
-	 *\param green A value between 0-255 for the green pixel
-	 *\param blue A value between 0-255 for the blue pixel
+	 *\param red A char value between 0-255 for the red pixel
+	 *\param green A char value between 0-255 for the green pixel
+	 *\param blue A char value between 0-255 for the blue pixel
 	 *\return True if the pixel is the color, false otherwise
 	 */
-	bool IsColor(int x, int y, int red, int green, int blue);
+	bool IsColor(unsigned int x, unsigned int y, unsigned char r, unsigned char g, unsigned char b);
+	/**
+	 *Tests if a pixel is a specific color
+	 *\param x The x-coordinate of the pixel
+	 *\param y The y-coordinate of the pixel
+	 *\param color An unsigned char array of length 3 containing the colors in the following order: {r, g, b}
+	 */
+	bool IsColor(unsigned int x, unsigned int y, const unsigned char color[3]);
 
 private:
 	CImg<unsigned char> *img;
@@ -78,13 +85,17 @@ private:
 
 	/**
 	 * Finds the starting and ending coordinates.
+	 * \return True if it has found one- and just one starting and end point. Crashes if it finds more.
 	 */
 	bool FindPoints();
 
-	int Sx;
-	int Sy;
+	unsigned int _Sx;
+	unsigned int _Sy;
 
-	int Ex;
-	int Ey;
+	unsigned int _Ex;
+	unsigned int _Ey;
+
+	bool _startFound;
+	bool _endFound;
 };
 } //End of namespace Eng

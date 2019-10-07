@@ -7,11 +7,14 @@ Maze::Maze(CImg<unsigned char> * imgFile)
 {
 	this->img = imgFile;
 
-	this->Sx = -1;
-	this->Sy = -1;
+	this->_Sx = 0;
+	this->_Sy = 0;
 
-	this->Ex = -1;
-	this->Ey = -1;
+	this->_Ex = 0;
+	this->_Ey = 0;
+
+	this->_startFound = false;
+	this->_endFound = false;
 
 	this->Verify();
 }
@@ -41,9 +44,10 @@ bool Maze::FindPoints()
     	//std::cout << "x:" << x << " y:" << y << " R:"<< (int)(*this->img)(x,y, 0) << "G:" << (int)(*this->img)(x,y, 1) << "B" << (int)(*this->img)(x,y, 2) << std::endl;
     	
         if(this->IsColor(x,y,0,255,0)){
-        	if(this->Sx == -1 && this->Sy == -1){
-				this->Sx = x;
-	        	this->Sy = y;
+        	if(this->_startFound == false){
+				this->_Sx = x;
+	        	this->_Sy = y;
+	        	this->_startFound = true;
 	        	std::cout << "Found starting pixel at " << x << "," << y << std::endl;
         	}
         	else
@@ -52,9 +56,10 @@ bool Maze::FindPoints()
         	}
         }
         else if(this->IsColor(x,y,0,0,255)){
-        	if(this->Ex == -1 && this->Ey == -1){
-	        	this->Ex = x;
-	        	this->Ey = y;
+        	if(this->_endFound == false){
+	        	this->_Ex = x;
+	        	this->_Ey = y;
+	        	this->_endFound = true;
 	        	std::cout << "Found end pixel at " << x << "," << y << std::endl;
 	       	}
 	       	else
@@ -62,23 +67,11 @@ bool Maze::FindPoints()
 	       		throw std::invalid_argument( "Image contained more than one ending point" );
 	       	}
         }
-        //In theory, we could break out early - but doing so, wouldn't ensure against
-        //multiple starting- or ending points. 
-        /*if(this->Sx > -1 && this->Ex > -1){
-        	std::cout << "Breaking" << std::endl;
-        	x = this->img->width();
-        	y = this->img->height();
-        	break;
-        }*/
+        //In theory, we could break out early by maximising x and y -
+        //but doing so, wouldn't ensure against multiple starting
+        //or ending points. 
     }
-    if(this->Sx > -1
-    	&& this-> Sy > -1
-    	&& this-> Ex > -1
-    	&& this-> Ey > -1)
-    {
-    	return true;
-    }
-    return false;
+    return (_startFound && _endFound);
 }
 
 void Maze::Display()
@@ -114,38 +107,39 @@ void Maze::Display()
     }
 }
 
-bool Maze::IsWalkable(int x, int y)
+bool Maze::IsWalkable(unsigned int x, unsigned int y)
 {
 	if(this->IsColor(x, y, 255, 255, 255) 
-		|| (this->Sx == x && this->Sy == y)
-		|| (this->Ex == x && this->Ey == y))
+		|| (this->_Sx == x && this->_Sy == y)
+		|| (this->_Ex == x && this->_Ey == y))
 	{
 		return true;
 	}
 	return false;
 }
 
-bool Maze::IsColor(int x, int y, int red, int green, int blue)
+bool Maze::IsColor(unsigned int x, unsigned int y, unsigned char r, unsigned char g, unsigned char b)
 {
-	if(0 <= red && red <= 255
-		&& 0 <= green && green <= 255
-		&& 0 <= blue && blue <= 255)
-	{
-		if((*this->img)(x,y, 0) == red
-	        && (*this->img)(x,y,1) == green
-	        && (*this->img)(x,y,2) == blue){
-			return true;
-		}
+	const unsigned char color[] = {r, g, b};
+	return this->IsColor(x, y, color);
+}
+
+bool Maze::IsColor(unsigned int x, unsigned int y, const unsigned char color[3])
+{
+	if((*this->img)(x,y, 0) == color[0]
+        && (*this->img)(x,y,1) == color[1]
+        && (*this->img)(x,y,2) == color[2]){
+		return true;
 	}
 	return false;
 }
 
-int Maze::GetStartX(){ return this->Sx;}
+int Maze::GetStartX(){ return this->_Sx;}
 
-int Maze::GetStartY(){ return this->Sy;}
+int Maze::GetStartY(){ return this->_Sy;}
 
-int Maze::GetEndX(){ return this->Ex;}
+int Maze::GetEndX(){ return this->_Ex;}
 
-int Maze::GetEndY(){ return this->Ey;}
+int Maze::GetEndY(){ return this->_Ey;}
 
 }//End of namespace Eng
