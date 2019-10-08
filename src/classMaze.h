@@ -106,11 +106,13 @@ public:
 	 * Runs Breadth first, Dijkstra, A*, HPA* and JPS.
 	 */
 	void RunAll();
-
+	
 	/**
 	 * Runs Breadth First Search for the shortest path on the current maze.
+	 * \param display If true, renders the picture on screen.
+	 * \param scalar Skips said amount of rendering iterations. Usefull for larger pictures.
 	 */
-	void RunBreadth(bool display = false);
+	void RunBreadth(bool display = false, unsigned int scalar = 1);
 	/**
 	 * Runs Dijsktra shortest path algorithm on the current maze.
 	 */

@@ -53,7 +53,7 @@ bool Maze::FindPoints()
 				this->m_Sx = x;
 	        	this->m_Sy = y;
 	        	this->m_startFound = true;
-	        	std::cout << "Found starting pixel at " << x << "," << y << std::endl;
+	        	std::cout << "Found starting pixel at (" << x << "," << y << ")" << std::endl;
         	}
         	else
         	{
@@ -65,7 +65,7 @@ bool Maze::FindPoints()
 	        	this->m_Ex = x;
 	        	this->m_Ey = y;
 	        	this->m_endFound = true;
-	        	std::cout << "Found end pixel at " << x << "," << y << std::endl;
+	        	std::cout << "Found end pixel at (" << x << "," << y << ")" << std::endl;
 	       	}
 	       	else
 	       	{
@@ -183,7 +183,7 @@ int Maze::GetEndX(){ return this->m_Ex;}
 
 int Maze::GetEndY(){ return this->m_Ey;}
 
-void Maze::RunBreadth(bool display)
+void Maze::RunBreadth(bool display, unsigned int scalar)
 {
 	this->img = this->imgBackup;
 	//CImgDisplay main_disp((*this->img),"Breadth First Search", 0);
@@ -194,6 +194,8 @@ void Maze::RunBreadth(bool display)
 
 	if(display)
 	{
+		if(scalar == 0) 
+			scalar = 1;
 		CImgDisplay main_disp((*this->img),"Breadth First Search", 0);
 		std::array<unsigned int, 2> current = {this->m_Ex, this->m_Ey};
 		std::array<unsigned int, 2> start = {m_Sx, m_Sy};
@@ -202,14 +204,27 @@ void Maze::RunBreadth(bool display)
 	    	main_disp.resize(500,500).display((*this->img));
 			if(!queue.empty())
 			{
-				this->BreadthStep(queue, came_from);
+				for(unsigned int i = 0; i < 1 * scalar; i++)
+				{
+					this->BreadthStep(queue, came_from);
+					if(queue.empty())
+						break;
+				}
 			}
 			else if(queue.empty() && current != start)
 			{
-				this->ColorPixel(current, {255, 0, 0});
-				current = came_from[current];
+				for(unsigned int i = 0; i < 1 * scalar/100; i++)
+				{
+					this->ColorPixel(current, {255, 0, 0});
+			        current = came_from[current];
+			        if(current == start)
+			        {
+			        	this->ColorPixel(current, {255, 0, 0});
+			        	break;
+			        }
+				}
 			}
-	    	main_disp.wait(10);
+	    	//main_disp.wait(10);
 	    }
 	}
 

@@ -10,12 +10,12 @@ using namespace cimg_library;
 int main(int argc, const char** argv)
 {
     std::cout << "P3 Hello, world!\n" << std::endl;
-    CImg<unsigned char> * img  = new CImg<unsigned char>("../../examples/test02.png");
+    CImg<unsigned char> * img  = new CImg<unsigned char>("../../examples/test03.png");
 
     Eng::Maze Maze(img);
 
     //Maze.RunBreadth();
-    Maze.RunBreadth();
+    Maze.RunBreadth(true, 5000);
 
     printf("End \n");
 
