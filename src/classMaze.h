@@ -106,7 +106,7 @@ public:
 	 * Runs Breadth first, Dijkstra, A*, HPA* and JPS.
 	 */
 	void RunAll();
-	
+
 	/**
 	 * Runs Breadth First Search for the shortest path on the current maze.
 	 * \param display If true, renders the picture on screen.
@@ -120,7 +120,7 @@ public:
 	/**
 	 * Runs A* shortest path algorithm on the current maze.
 	 */
-	void RunAStar();
+	void RunAStar(bool display = false);
 	/**
 	 * Runs HPA* shortest path algorithm on the current maze.
 	 */
@@ -151,9 +151,15 @@ private:
 
 	/**
 	 * Runs a step on Breadth First shortest path.
+	 * \param queue Takes a queue of a length 2 unsignd int array, that is not empty.
+	 * \param came_from Takes a map of unsigned int arrays with the length 2, with a key that is an unsigned int array of length 2
 	 */
 	void BreadthStep(std::queue<std::array<unsigned int, 2>>& queue,
 		             std::map<std::array<unsigned int, 2>, std::array<unsigned int, 2>>& came_from);
+	/**
+	 * Runs a step on A-star shortest path.
+	 */
+	void AStarStep();
 
 	/**
 	 *Color a pixel at a location

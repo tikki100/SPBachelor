@@ -6,7 +6,6 @@ namespace Eng
 Maze::Maze(CImg<unsigned char> * imgFile)
 {
 	this->img = imgFile;
-	this->imgBackup = imgFile;
 
 	this->m_Sx = 0;
 	this->m_Sy = 0;
@@ -185,8 +184,6 @@ int Maze::GetEndY(){ return this->m_Ey;}
 
 void Maze::RunBreadth(bool display, unsigned int scalar)
 {
-	this->img = this->imgBackup;
-	//CImgDisplay main_disp((*this->img),"Breadth First Search", 0);
 	std::queue<std::array<unsigned int, 2>> queue;
 	queue.push({m_Sx, m_Sy});
 	std::map<std::array<unsigned int, 2>, std::array<unsigned int, 2>> came_from;
@@ -197,8 +194,10 @@ void Maze::RunBreadth(bool display, unsigned int scalar)
 		if(scalar == 0) 
 			scalar = 1;
 		CImgDisplay main_disp((*this->img),"Breadth First Search", 0);
+
 		std::array<unsigned int, 2> current = {this->m_Ex, this->m_Ey};
 		std::array<unsigned int, 2> start = {m_Sx, m_Sy};
+
 	    while (!main_disp.is_closed()) 
 	    {
 	    	main_disp.resize(500,500).display((*this->img));
@@ -213,7 +212,10 @@ void Maze::RunBreadth(bool display, unsigned int scalar)
 			}
 			else if(queue.empty() && current != start)
 			{
-				for(unsigned int i = 0; i < 1 * scalar/100; i++)
+				unsigned int cond = (1 * scalar/100);
+				if (cond == 0)
+					cond = 1;
+				for(unsigned int i = 0; i < cond; i++)
 				{
 					this->ColorPixel(current, {255, 0, 0});
 			        current = came_from[current];
@@ -224,24 +226,25 @@ void Maze::RunBreadth(bool display, unsigned int scalar)
 			        }
 				}
 			}
-	    	//main_disp.wait(10);
 	    }
 	}
 
 	else
 	{
+		std::array<unsigned int, 2> current = {this->m_Ex, this->m_Ey};
+		std::array<unsigned int, 2> start = {m_Sx, m_Sy};
+
 		while(!queue.empty())
 		{
 			this->BreadthStep(queue, came_from);
 		}
-		std::array<unsigned int, 2> current = {this->m_Ex, this->m_Ey};
-		std::array<unsigned int, 2> start = {m_Sx, m_Sy};
 		while(current != start)
 		{
 			this->ColorPixel(current, {255, 0, 0});
 			current = came_from[current];
 		}
 		this->ColorPixel(start, {255, 0, 0});
+
 		this->img->save("../../examples/breadth.png");
 	}
 
@@ -253,6 +256,9 @@ void Maze::BreadthStep(std::queue<std::array<unsigned int, 2>>& queue,
 {
 	std::array<unsigned char, 3> grey = {126, 126, 126};
 	std::array<unsigned char, 3> path = {255, 0, 0};
+
+	if(queue.empty())
+		throw std::invalid_argument( "Attempted to do BreadthStep on an empty queue." );
 
 	std::array<unsigned int, 2> coords = queue.front();
 	queue.pop();
@@ -288,7 +294,22 @@ void Maze::BreadthStep(std::queue<std::array<unsigned int, 2>>& queue,
 	}
 }
 
+void Maze::RunAStar(bool display)
+{
+	if(display)
+	{
 
+	}
+	else
+	{
+
+	}
+}
+
+void Maze::AStarStep()
+{
+	//TODO
+}
 
 void Maze::Test()
 {
