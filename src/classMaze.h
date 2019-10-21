@@ -177,18 +177,34 @@ private:
 	void BreadthStep(std::queue<std::array<unsigned int, 2>>& queue,
 		             	std::map<std::array<unsigned int, 2>, std::array<unsigned int, 2>>& came_from);
 
-		/**
-	 * Runs a step on A-star shortest path.
+	/**
+	 * Runs a step on Dijkstra shortest path.
+	 * \param queue Takes a queue of a length 3 unsignd int array, that is not empty, {x-coordinate, y-coordinate, weight}.
+	 * \param came_from Takes a map of unsigned int arrays with the length 2, with a key that is an unsigned int array of length 2
+	 * \param cost_so_far Takes a map of unsigned int, with a key that is an unsigned int array of length 2.
 	 */
 	void DijkstraStep(std::vector<std::array<unsigned int, 3>>& queue, 
 	                   std::map< std::array<unsigned int, 2>, std::array<unsigned int, 2> >& came_from,
 	                   std::map< std::array<unsigned int, 2>, unsigned int>& cost_so_far);
-
-	bool CompareWeights(const std::array<unsigned int, 3> &a, const std::array<unsigned int, 3>&b);
 	/**
 	 * Runs a step on A-star shortest path.
 	 */
 	void AStarStep();
+
+	/**
+	 * Finds all walkable neighbors for a given pixel.
+	 * \param coords An array of 2 unsigned ints with the coordinates of a pixel in the following order: {x,y}
+	 * \returns An unknown length vector containing unsigned int arrays of length 2. 
+	 */
+	std::vector<std::array<unsigned int,2>> GetNeighbors(std::array<unsigned int, 2> coords);
+	/**
+	 * Finds all walkable neighbors for a given pixel.
+	 * \param x The x-coordinate of the pixel
+	 * \param y The y-coordinate of the pixel
+	 * \returns An unknown length vector containing unsigned int arrays of length 2. 
+	 */
+	std::vector<std::array<unsigned int,2>> GetNeighbors(unsigned int x, unsigned int y);
+
 
 	/**
 	 *Color a pixel at a location

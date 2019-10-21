@@ -381,7 +381,6 @@ void Maze::RunDijkstra(bool display, bool saveResult)
 		std::cout << "Coloring start" << std::endl;
 		while(current != start)
 		{
-			std::cout << "Colortime!" << std::endl;
 			this->ColorPixel(current, {255, 0, 0});
 			current = came_from[current];
 		}
@@ -412,51 +411,38 @@ void Maze::DijkstraStep(std::vector<std::array<unsigned int, 3>>& queue,
 
 	queue.pop_back();
 
-	for(int _x = -1; _x < 2; _x++) //Check all 8 neighboring pixels.
-	{
-		if(coords[0] == 0 && _x == -1) //If we move too far left, skip
-			continue;
-		else if(coords[0] == (this->img->width()-1) && _x == 1) //If we're too  far right, skip
-			continue;
-		for(int _y = -1; _y < 2; _y++)
-		{
-			if(coords[1] == 0 && _y == -1)  //If we're above the picture, skip
-				continue;
-			else if(coords[1] == (this->img->height()-1) && _y == 1) //If we're below the picture, skip
-				continue;
-			else if(coords[0] == coords[0]+ _x && coords[1] == coords[1] + _y) //If we're on the current pixel, skip
-				continue;
-			//Since the cost between is always 1, we add 1 to the new weight.
-			//new_weight = cost_so_far[coords] + cost_between(coords, next)
-			unsigned int new_weight = cost_so_far[current] + 1;
-			std::array<unsigned int, 2> neighbor = {coords[0] + _x, coords[1] + _y};
+	std::vector<std::array<unsigned int,2>> neighbors = this->GetNeighbors(current);
 
-			
-			if(this->IsWalkable(neighbor))
+	for(std::array<unsigned int, 2> neighbor : neighbors)
+	{
+		//Since the cost between is always 1, we add 1 to the new weight.
+		//new_weight = cost_so_far[coords] + cost_between(coords, next)
+		unsigned int new_weight = cost_so_far[current] + 1;
+
+		std::cout << "Checking: {" << neighbor[0] << "," << neighbor[1] << "}" << std::endl;
+
+		if(neighbor[0] == this->m_Ex && neighbor[1] == this->m_Ey)
+		{
+			//Break the loop
+			std::cout << "Found end!" << std::endl;
+			came_from[neighbor] = current;
+			cost_so_far[neighbor] = new_weight;
+			queue.clear();
+			return;
+		}
+		else
+		{
+			this->ColorPixel(neighbor, grey);
+			if(cost_so_far.count(neighbor) == 0 || new_weight < cost_so_far[neighbor])
 			{
-				this->ColorPixel(neighbor, grey);
-				
-				if(cost_so_far.count(neighbor) == 0 || new_weight < cost_so_far[neighbor])
-				{
-					cost_so_far[neighbor] = new_weight;
-					std::array<unsigned int, 3> neigh_weighted = {neighbor[0], neighbor[1], new_weight};
-					queue.emplace_back(neigh_weighted);
-					came_from[neighbor] = current;
-				}
-			}
-			else if((neighbor[0] == this->m_Ex) && (neighbor[1] == this->m_Ey))
-			{
-				//Break the loop
-				std::cout << "Found end!" << std::endl;
-				came_from[neighbor] = {coords[0], coords[1]};
 				cost_so_far[neighbor] = new_weight;
-				queue.clear();
-				return;
+				std::array<unsigned int, 3> neigh_weighted = {neighbor[0], neighbor[1], new_weight};
+				queue.emplace_back(neigh_weighted);
+				came_from[neighbor] = current;
 			}
 
 		}
 	}
-	this->ColorPixel(coords, black);
 }
 
 void Maze::RunAStar(bool display, bool saveResult)
@@ -478,6 +464,48 @@ void Maze::AStarStep()
 
 void Maze::Test()
 {
+
+}
+
+std::vector<std::array<unsigned int,2>> Maze::GetNeighbors(std::array<unsigned int, 2> coords)
+{
+	return this->GetNeighbors(coords[0], coords[1]);
+}
+
+std::vector<std::array<unsigned int,2>> Maze::GetNeighbors(unsigned int x, unsigned int y)
+{
+	std::vector<std::array<unsigned int,2>> result;
+	result.reserve(8);
+
+	for(int _x = -1; _x < 2; _x++) //Check all 8 neighboring pixels.
+	{
+		if(x == 0 && _x == -1) //If we move too far left, skip
+			continue;
+		else if(x == (this->img->width()-1) && _x == 1) //If we're too  far right, skip
+			continue;
+		for(int _y = -1; _y < 2; _y++)
+		{
+			if(y == 0 && _y == -1)  //If we're above the picture, skip
+				continue;
+			else if(y == (this->img->height()-1) && _y == 1) //If we're below the picture, skip
+				continue;
+			else if(x == x + _x && y == y + _y) //If we're on the current pixel, skip
+				continue;
+			std::array<unsigned int, 2> neighbor = {x + _x, y + _y};
+
+			if(this->IsWalkable(neighbor))
+			{
+				result.push_back(neighbor);
+			}
+			else if(neighbor[0] == this->m_Ex && neighbor[1] == this->m_Ey)
+			{
+				result.push_back(neighbor);
+				return result; //If we have found the end, return early.
+			}
+		}
+	}
+
+	return result;
 
 }
 
