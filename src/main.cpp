@@ -18,9 +18,9 @@ int main(int argc, const char** argv)
 
     Eng::Maze Maze(img, filename);
 
-    Maze.RunDijkstra(true);
+    //Maze.RunDijkstra(true);
     //Maze.RunBreadth();
-    //Maze.RunBreadth(true);
+    Maze.RunBreadth(true);
 
 
     //Maze.RunBreadth(true, 500);

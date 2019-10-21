@@ -277,39 +277,29 @@ void Maze::BreadthStep(std::queue<std::array<unsigned int, 2>>& queue,
 	if(queue.empty())
 		throw std::invalid_argument( "Attempted to do BreadthStep on an empty queue." );
 
-	std::array<unsigned int, 2> coords = queue.front();
+	std::array<unsigned int, 2> current = queue.front();
 	queue.pop();
 
-	for(int _x = -1; _x < 2; _x++) //Check all 8 neighboring pixels.
-	{
-		if(coords[0] == 0 && _x == -1) //If we move too far left, skip
-			continue;
-		else if(coords[0] == (this->img->width()-1) && _x == 1) //If we're too  far right, skip
-			continue;
-		for(int _y = -1; _y < 2; _y++)
-		{
-			if(coords[1] == 0 && _y == -1)  //If we're above the picture, skip
-				continue;
-			else if(coords[1] == (this->img->height()-1) && _y == 1) //If we're below the picture, skip
-				continue;
-			else if(coords[0] == coords[0]+ _x && coords[1] == coords[1] + _y) //If we're on the current pixel, skip
-				continue;
-			std::array<unsigned int, 2> neighbor = {coords[0] + _x, coords[1] + _y};
-			if(this->IsWalkable(neighbor))
-			{
-				this->ColorPixel(neighbor, grey);
-				came_from.try_emplace(neighbor, coords);
-				queue.push(neighbor);
-			}
-			else if((neighbor[0] == this->m_Ex) && (neighbor[1] == this->m_Ey))
-			{
-				//Break the loop
-				std::cout << "Found end!" << std::endl;
-				queue = std::queue<std::array<unsigned int, 2>>();
-				came_from.try_emplace(neighbor, coords);
-				return;
-			}
+	std::vector<std::array<unsigned int,2>> neighbors = this->GetNeighbors(current);
 
+	for(std::array<unsigned int, 2> neighbor : neighbors)
+	{
+
+		std::cout << "Checking: {" << neighbor[0] << "," << neighbor[1] << "}" << std::endl;
+
+		if(neighbor[0] == this->m_Ex && neighbor[1] == this->m_Ey)
+		{
+			//Break the loop
+			std::cout << "Found end!" << std::endl;
+			queue = std::queue<std::array<unsigned int, 2>>();
+			came_from.try_emplace(neighbor, current);
+			return;
+		}
+		else
+		{
+			this->ColorPixel(neighbor, grey);
+			came_from.try_emplace(neighbor, current);
+			queue.push(neighbor);
 		}
 	}
 }
