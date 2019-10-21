@@ -10,18 +10,21 @@ using namespace cimg_library;
 int main(int argc, const char** argv)
 {
     std::cout << "P3 Hello, world!\n" << std::endl;
-    CImg<unsigned char> * img  = new CImg<unsigned char>("../../examples/test02.png");
-    
-    std::cout << "Test:" << test << std::endl;
 
-    Eng::Maze Maze(img);
+    std::string filename = "test06";
 
-    Maze.RunBreadth(true);
+    std::string path = "../../examples/" + filename + ".png";
+    CImg<unsigned char> * img  = new CImg<unsigned char>(path.c_str());
+
+    Eng::Maze Maze(img, filename);
+
+    Maze.RunDijkstra(true);
+    //Maze.RunBreadth(true);
 
 
     //Maze.RunBreadth(true, 500);
 
-    printf("End \n");
+    printf("End of program \n");
 
     return 0;
 }

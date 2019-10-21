@@ -4,9 +4,15 @@
 #include "CImg.h"
 using namespace cimg_library;
 #include <iostream>
+
 #include <array>
+#include <vector>
+
 #include <queue>
 #include <map>
+
+#include <string>
+#include <algorithm>
 
 namespace Eng
 {
@@ -20,7 +26,7 @@ public:
 	 * Initilizes a maze, based on an image file.
 	 * \param imgFile A pointer to an image file that has been loaded in CImg.
 	 */
-	Maze(CImg<unsigned char> * imgFile);
+	Maze(CImg<unsigned char> * imgFile, std::string name);
 
 	/**
 	 *Destroyes the current instance of the maze
@@ -66,6 +72,13 @@ public:
 	 *\return True if the pixel is walkable, false if it's a wall
 	 */
 	bool IsWalkable(std::array<unsigned int, 2> coords);
+
+	/**
+	 *Tests if a pixel is a wall or not.
+	 *\param coords An unsigned int array which contains an x- and y value and a weight in the following order: {x,y, w}
+	 *\return True if the pixel is walkable, false if it's a wall
+	 */
+	bool IsWalkable(std::array<unsigned int, 3> coords);
 	/**
 	 *Tests if a pixel is a specific color
 	 *\param x The x-coordinate of the pixel
@@ -103,7 +116,7 @@ public:
 
 	/**
 	 * Runs all shortest path algorithms
-	 * Runs Breadth first, Dijkstra, A*, HPA* and JPS.
+	 * Runs Breadth first, A*, HPA* and JPS.
 	 */
 	void RunAll();
 
@@ -111,24 +124,31 @@ public:
 	 * Runs Breadth First Search for the shortest path on the current maze.
 	 * \param display If true, renders the picture on screen.
 	 * \param scalar Skips said amount of rendering iterations. Usefull for larger pictures.
+	 * \param saveResult If display is true, this variable determines whether or not to save the result as a file.
 	 */
-	void RunBreadth(bool display = false, unsigned int scalar = 1);
+	void RunBreadth(bool display = false, unsigned int scalar = 1, bool saveResult = false);
+
 	/**
 	 * Runs Dijsktra shortest path algorithm on the current maze.
+	 * \param display If true, renders the picture on screen.
+	 * \param saveResult If display is true, this variable determines whether or not to save the result as a file.
 	 */
-	void RunDijkstra();
+	void RunDijkstra(bool display = false, bool saveResult = false);
 	/**
 	 * Runs A* shortest path algorithm on the current maze.
+	 * \param saveResult If display is true, this variable determines whether or not to save the result as a file.
 	 */
-	void RunAStar(bool display = false);
+	void RunAStar(bool display = false, bool saveResult = false);
 	/**
 	 * Runs HPA* shortest path algorithm on the current maze.
+	 * \param saveResult If display is true, this variable determines whether or not to save the result as a file.
 	 */
-	void RunHPAStar();
+	void RunHPAStar(bool display = false, bool saveResult = false);
 	/**
 	 * Runs JPS* shortest path algorithm on the current maze.
+	 * \param saveResult If display is true, this variable determines whether or not to save the result as a file.
 	 */
-	void RunJPS();
+	void RunJPS(bool display = false, bool saveResult = false);
 
 	void Test();
 
@@ -139,12 +159,12 @@ private:
 	CImg<unsigned char> *imgBackup;
 	/**
 	 *Verifies that the maze is valid
-	 * Verifies that theres a starting - and an endpoint, as well as 3 channels (RGB). 
+	 * Verifies that theres a starting {0, 255, 0} - and an endpoint {0, 0, 255}, as well as 3 channels (RGB). 
 	 */
 	void Verify();
 
 	/**
-	 * Finds the starting and ending coordinates.
+	 * Finds the starting {0, 255, 0} and ending {0, 0, 255} coordinates.
 	 * \return True if it has found one- and just one starting and end point. Crashes if it finds more.
 	 */
 	bool FindPoints();
@@ -155,7 +175,16 @@ private:
 	 * \param came_from Takes a map of unsigned int arrays with the length 2, with a key that is an unsigned int array of length 2
 	 */
 	void BreadthStep(std::queue<std::array<unsigned int, 2>>& queue,
-		             std::map<std::array<unsigned int, 2>, std::array<unsigned int, 2>>& came_from);
+		             	std::map<std::array<unsigned int, 2>, std::array<unsigned int, 2>>& came_from);
+
+		/**
+	 * Runs a step on A-star shortest path.
+	 */
+	void DijkstraStep(std::vector<std::array<unsigned int, 3>>& queue, 
+	                   std::map< std::array<unsigned int, 2>, std::array<unsigned int, 2> >& came_from,
+	                   std::map< std::array<unsigned int, 2>, unsigned int>& cost_so_far);
+
+	bool CompareWeights(const std::array<unsigned int, 3> &a, const std::array<unsigned int, 3>&b);
 	/**
 	 * Runs a step on A-star shortest path.
 	 */
@@ -167,6 +196,12 @@ private:
 	 *\param color A const unsigned char array of length 3 containing the colors in the following order: {r, g, b}
 	 */
 	void ColorPixel(std::array<unsigned int,2> coords, std::array<unsigned char, 3> color);
+	/**
+	 *Color a pixel at a location
+	 *\param coords An unsigned int array with an x- and y and a weight coordinate in the following order: {x,y, w}
+	 *\param color A const unsigned char array of length 3 containing the colors in the following order: {r, g, b}
+	 */
+	void ColorPixel(std::array<unsigned int,3> coords, std::array<unsigned char, 3> color);
     /**
 	 *Color a pixel at a location
 	 *\param x The x-coordinate of the pixel
@@ -174,6 +209,7 @@ private:
 	 *\param color A const unsigned char array of length 3 containing the colors in the following order: {r, g, b}
 	 */
 	void ColorPixel(unsigned int x, unsigned int y, std::array<unsigned char, 3> color);
+
 
 	unsigned int m_Sx;
 	unsigned int m_Sy;
@@ -183,5 +219,9 @@ private:
 
 	bool m_startFound;
 	bool m_endFound;
+
+	std::string m_name;
+
+	inline static const std::string exampleFolder = "../../examples/";
 };
 } //End of namespace Eng
