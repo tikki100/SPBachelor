@@ -1,3 +1,9 @@
 build/
 *.sublime-project
 *.sublime-workspace
+
+*_dijkstra.png
+*_breadth.png
+*_JPS.png
+*_HPA.png
+*_astar.png
