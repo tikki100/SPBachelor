@@ -33,11 +33,6 @@ public:
 	 */
 	virtual ~Maze();
 
-    /**
-	 *Displays the current maze with any alterations.
-	 */
-	void Display();
-
 	/**
 	 *Get the start value for x
 	 *\return An integer for the starting X-coordinate
@@ -96,7 +91,7 @@ public:
 	 *\param color A const unsigned char array of length 3 containing the colors in the following order: {r, g, b}
 	 *\return True if the pixel is the color, false otherwise
 	 */
-	bool IsColor(std::array<unsigned int, 2> coords, std::array<unsigned char, 3> color);
+	bool IsColor(std::array<unsigned int, 2> coords, std::array<unsigned char, 3>& color);
     /**
 	 *Tests if a pixel is a specific color
 	 *\param x The x-coordinate of the pixel
@@ -104,7 +99,7 @@ public:
 	 *\param color A const unsigned char array of length 3 containing the colors in the following order: {r, g, b}
 	 *\return True if the pixel is the color, false otherwise
 	 */
-	bool IsColor(unsigned int x, unsigned int y, std::array<unsigned char, 3> color);
+	bool IsColor(unsigned int x, unsigned int y, std::array<unsigned char, 3>& color);
 
 	/**
 	 *Gets a color at a specific location
@@ -179,7 +174,7 @@ private:
 
 	/**
 	 * Runs a step on Dijkstra shortest path.
-	 * \param queue Takes a queue of a length 3 unsignd int array, that is not empty, {x-coordinate, y-coordinate, weight}.
+	 * \param queue Takes a queue of a length 3 unsigned int array, that is not empty, {x-coordinate, y-coordinate, weight}.
 	 * \param came_from Takes a map of unsigned int arrays with the length 2, with a key that is an unsigned int array of length 2
 	 * \param cost_so_far Takes a map of unsigned int, with a key that is an unsigned int array of length 2.
 	 */
@@ -188,15 +183,20 @@ private:
 	                   std::map< std::array<unsigned int, 2>, unsigned int>& cost_so_far);
 	/**
 	 * Runs a step on A-star shortest path.
+	 * \param queue Takes a queue of a length 3 unsigned int array, that is not empty, {x-coordinate, y-coordinate, weight}.
+	 * \param came_from Takes a map of unsigned int arrays with the length 2, with a key that is an unsigned int array of length 2
+	 * \param cost_so_far Takes a map of unsigned int, with a key that is an unsigned int array of length 2.
 	 */
-	void AStarStep();
+	void AStarStep(std::vector<std::array<unsigned int, 3>>& queue, 
+	                   std::map< std::array<unsigned int, 2>, std::array<unsigned int, 2> >& came_from,
+	                   std::map< std::array<unsigned int, 2>, unsigned int>& cost_so_far);
 
 	/**
 	 * Finds all walkable neighbors for a given pixel.
 	 * \param coords An array of 2 unsigned ints with the coordinates of a pixel in the following order: {x,y}
 	 * \returns An unknown length vector containing unsigned int arrays of length 2. 
 	 */
-	std::vector<std::array<unsigned int,2>> GetNeighbors(std::array<unsigned int, 2> coords);
+	std::vector<std::array<unsigned int,2>> GetNeighbors(std::array<unsigned int, 2>& coords);
 	/**
 	 * Finds all walkable neighbors for a given pixel.
 	 * \param x The x-coordinate of the pixel

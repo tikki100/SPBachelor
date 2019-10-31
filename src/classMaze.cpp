@@ -77,47 +77,6 @@ bool Maze::FindPoints()
     return (m_startFound && m_endFound);
 }
 
-void Maze::Display()
-{
-	CImg<unsigned char> * result = this->img;
-	//Temporary resizing
-	/*if(this->img->width() <= 100 && this->img->height() <= 100)
-	{
-		CImg<unsigned char> scaling = *(this->img);
-		if (this->img->width() <= 25 && this->img->height() <= 25)
-		{
-			if (this->img->width() <= 10 && this->img->height() <= 10)
-			{
-				scaling.resize(scaling.width()*50, scaling.height()*50);
-			}
-			else
-			{
-				scaling.resize(scaling.width()*15, scaling.height()*15);
-			}
-		}
-		else
-		{
-			scaling.resize(scaling.width()*10, scaling.height()*10);
-		}
-		result = &scaling;
-	}*/
-
-	
-
-	//Updating per step
-	CImgDisplay main_disp((*result),"Test image 2", 0);
-    while (!main_disp.is_closed()) 
-    {
-    	/*
-    	main_disp.resize(100,100).display((*this->img));
-    	std::cout << "Loop: " << y << " Color: " << (int)this->GetColor(0, y)[1] << std::endl;
-    	std::array<unsigned char, 3> color = {255, 0, 0};
-    	this->ColorPixel(0,y, color);
-    	y++;*/
-    }
-    
-}
-
 bool Maze::IsWalkable(std::array<unsigned int, 3> coords)
 {
 	return this->IsWalkable(coords[0], coords[1]);
@@ -143,12 +102,12 @@ bool Maze::IsColor(unsigned int x, unsigned int y, unsigned char r, unsigned cha
 	return this->IsColor(x, y, color);
 }
 
-bool Maze::IsColor(std::array<unsigned int, 2> coords, std::array<unsigned char, 3> color)
+bool Maze::IsColor(std::array<unsigned int, 2> coords, std::array<unsigned char, 3>& color)
 {
 	return this->IsColor(coords[0], coords[1], color);
 }
 
-bool Maze::IsColor(unsigned int x, unsigned int y, std::array<unsigned char, 3> color)
+bool Maze::IsColor(unsigned int x, unsigned int y, std::array<unsigned char, 3>& color)
 {
 	std::array<unsigned char, 3> _checkColor = this->GetColor(x,y); 
 
@@ -285,21 +244,24 @@ void Maze::BreadthStep(std::queue<std::array<unsigned int, 2>>& queue,
 	for(std::array<unsigned int, 2> neighbor : neighbors)
 	{
 
-		std::cout << "Checking: {" << neighbor[0] << "," << neighbor[1] << "}" << std::endl;
+		//std::cout << "Checking: {" << neighbor[0] << "," << neighbor[1] << "} came from: {" << current[0] << "," << current[1] << "}" << std::endl;
 
 		if(neighbor[0] == this->m_Ex && neighbor[1] == this->m_Ey)
 		{
 			//Break the loop
 			std::cout << "Found end!" << std::endl;
 			queue = std::queue<std::array<unsigned int, 2>>();
-			came_from.try_emplace(neighbor, current);
+			came_from.emplace(neighbor, current);
 			return;
 		}
 		else
 		{
-			this->ColorPixel(neighbor, grey);
-			came_from.try_emplace(neighbor, current);
-			queue.push(neighbor);
+			if(came_from.count(neighbor) == 0)
+			{
+				this->ColorPixel(neighbor, grey);
+				came_from.emplace(neighbor, current);
+				queue.push(neighbor);
+			}
 		}
 	}
 }
@@ -308,7 +270,7 @@ void Maze::RunDijkstra(bool display, bool saveResult)
 {
 	std::cout << "Running Djikstra!" << std::endl;
 	std::vector<std::array<unsigned int,3>> queue;
-	queue.reserve(50);
+	queue.reserve(100);
 
 	std::map<std::array<unsigned int, 2>, std::array<unsigned int, 2>> came_from;
 	std::map<std::array<unsigned int, 2>, unsigned int> cost_so_far;
@@ -330,7 +292,7 @@ void Maze::RunDijkstra(bool display, bool saveResult)
 	    	main_disp.resize(500,500).display((*this->img));
 			if(!queue.empty())
 			{
-				for(unsigned int i = 0; i < 1; i++)
+				for(int i = 0; i < 1000; i++)
 				{
 					this->DijkstraStep(queue, came_from, cost_so_far);
 					if(queue.empty())
@@ -339,20 +301,17 @@ void Maze::RunDijkstra(bool display, bool saveResult)
 			}
 			else if(queue.empty() && current != start)
 			{
-
-				unsigned int cond = 1; //(1 * scalar/100);
-				/*if (cond == 0)
-					cond = 1;*/
-				for(unsigned int i = 0; i < cond; i++)
+				for(int i = 0; i < 1000; i++)
 				{
 					this->ColorPixel(current, {255, 0, 0});
 			        current = came_from[current];
 			        if(current == start)
 			        {
 			        	this->ColorPixel(current, {255, 0, 0});
-			        	break;
 			        }
-				}
+			        if(queue.empty() || current == start)
+						break;
+		    	}
 			}
 	    }
 
@@ -389,7 +348,6 @@ void Maze::DijkstraStep(std::vector<std::array<unsigned int, 3>>& queue,
 {
 	std::array<unsigned char, 3> grey = {126, 126, 126};
 	std::array<unsigned char, 3> path = {255, 0, 0};
-	std::array<unsigned char, 3> black = {0, 0, 0};
 
 	if(queue.empty())
 		throw std::invalid_argument( "Attempted to do DijkstraStep on an empty queue." );
@@ -409,7 +367,7 @@ void Maze::DijkstraStep(std::vector<std::array<unsigned int, 3>>& queue,
 		//new_weight = cost_so_far[coords] + cost_between(coords, next)
 		unsigned int new_weight = cost_so_far[current] + 1;
 
-		std::cout << "Checking: {" << neighbor[0] << "," << neighbor[1] << "}" << std::endl;
+		//std::cout << "Checking: {" << neighbor[0] << "," << neighbor[1] << "}" << std::endl;
 
 		if(neighbor[0] == this->m_Ex && neighbor[1] == this->m_Ey)
 		{
@@ -437,19 +395,54 @@ void Maze::DijkstraStep(std::vector<std::array<unsigned int, 3>>& queue,
 
 void Maze::RunAStar(bool display, bool saveResult)
 {
+	std::cout << "Running A*!" << std::endl;
+	std::vector<std::array<unsigned int,3>> queue;
+	queue.reserve(100);
+
+	std::map<std::array<unsigned int, 2>, std::array<unsigned int, 2>> came_from;
+	std::map<std::array<unsigned int, 2>, unsigned int> cost_so_far;
+
+	came_from[{this->m_Sx, this->m_Sy}] = {this->m_Sx, this->m_Sy};
+	cost_so_far[{this->m_Sx, this->m_Sy}] = 0;
+
+	queue.emplace_back((std::array<unsigned int, 3>){this->m_Sx, this->m_Sy, 0});
+
+	std::array<unsigned int, 2> current = {this->m_Ex, this->m_Ey};
+	std::array<unsigned int, 2> start = {this->m_Sx, this->m_Sy};
+
 	if(display)
 	{
 		//TODO
 	}
 	else
 	{
-		//TODO
+		while(!queue.empty())
+		{
+			this->AStarStep(queue, came_from, cost_so_far);
+		}
 	}
 }
 
-void Maze::AStarStep()
+void Maze::AStarStep(std::vector<std::array<unsigned int, 3>>& queue, 
+	                   		std::map< std::array<unsigned int, 2>, std::array<unsigned int, 2> >& came_from,
+	                   		std::map< std::array<unsigned int, 2>, unsigned int>& cost_so_far)
 {
-	//TODO
+	std::array<unsigned char, 3> grey = {126, 126, 126};
+	std::array<unsigned char, 3> path = {255, 0, 0};
+
+	if(queue.empty())
+		throw std::invalid_argument( "Attempted to do DijkstraStep on an empty queue." );
+
+	std::sort(queue.begin(), queue.end(), [this](auto l, auto r) {return (l[2] > r[2]); });
+
+	std::array<unsigned int, 3> coords = queue.back();
+	std::array<unsigned int, 2> current = {coords[0], coords[1]};
+
+	queue.pop_back();
+
+	std::vector<std::array<unsigned int,2>> neighbors = this->GetNeighbors(current);
+
+
 }
 
 void Maze::Test()
@@ -457,7 +450,7 @@ void Maze::Test()
 
 }
 
-std::vector<std::array<unsigned int,2>> Maze::GetNeighbors(std::array<unsigned int, 2> coords)
+std::vector<std::array<unsigned int,2>> Maze::GetNeighbors(std::array<unsigned int, 2>& coords)
 {
 	return this->GetNeighbors(coords[0], coords[1]);
 }
@@ -465,24 +458,87 @@ std::vector<std::array<unsigned int,2>> Maze::GetNeighbors(std::array<unsigned i
 std::vector<std::array<unsigned int,2>> Maze::GetNeighbors(unsigned int x, unsigned int y)
 {
 	std::vector<std::array<unsigned int,2>> result;
-	result.reserve(8);
+	
+	bool FindEightNeigh = false; //Returns 8 neighbors if true, otherwise returns 4.
 
-	for(int _x = -1; _x < 2; _x++) //Check all 8 neighboring pixels.
+	if(FindEightNeigh)
 	{
-		if(x == 0 && _x == -1) //If we move too far left, skip
-			continue;
-		else if(x == (this->img->width()-1) && _x == 1) //If we're too  far right, skip
-			continue;
-		for(int _y = -1; _y < 2; _y++)
+		result.reserve(8);
+	
+		for(int _x = -1; _x < 2; _x++) //Check all 8 neighboring pixels.
 		{
-			if(y == 0 && _y == -1)  //If we're above the picture, skip
+			if(x == 0 && _x == -1) //If we move too far left, skip
 				continue;
-			else if(y == (this->img->height()-1) && _y == 1) //If we're below the picture, skip
+			else if(x == (this->img->width()-1) && _x == 1) //If we're too  far right, skip
 				continue;
-			else if(x == x + _x && y == y + _y) //If we're on the current pixel, skip
-				continue;
-			std::array<unsigned int, 2> neighbor = {x + _x, y + _y};
-
+			for(int _y = -1; _y < 2; _y++)
+			{
+				if(y == 0 && _y == -1)  //If we're above the picture, skip
+					continue;
+				else if(y == (this->img->height()-1) && _y == 1) //If we're below the picture, skip
+					continue;
+				else if(x == x + _x && y == y + _y) //If we're on the current pixel, skip
+					continue;
+				std::array<unsigned int, 2> neighbor = {x + _x, y + _y};
+	
+				if(this->IsWalkable(neighbor))
+				{
+					result.push_back(neighbor);
+				}
+				else if(neighbor[0] == this->m_Ex && neighbor[1] == this->m_Ey)
+				{
+					result.push_back(neighbor);
+					return result; //If we have found the end, return early.
+				}
+			}
+		}
+	}
+	else
+	{
+		result.reserve(4);	
+		std::array<unsigned int, 2> neighbor;
+		if(x != (this->img->width()-1)) //Down
+		{
+			neighbor = {x + 1, y};
+			if(this->IsWalkable(neighbor))
+			{
+				result.push_back(neighbor);
+			}
+			else if(neighbor[0] == this->m_Ex && neighbor[1] == this->m_Ey)
+			{
+				result.push_back(neighbor);
+				return result; //If we have found the end, return early.
+			}
+		}
+		if(x != 0) //Up
+		{
+			neighbor = {x - 1, y};
+			if(this->IsWalkable(neighbor))
+			{
+				result.push_back(neighbor);
+			}
+			else if(neighbor[0] == this->m_Ex && neighbor[1] == this->m_Ey)
+			{
+				result.push_back(neighbor);
+				return result; //If we have found the end, return early.
+			}
+		}
+		if(y != (this->img->height()-1)) //Right
+		{
+			neighbor = {x, y+1};
+			if(this->IsWalkable(neighbor))
+			{
+				result.push_back(neighbor);
+			}
+			else if(neighbor[0] == this->m_Ex && neighbor[1] == this->m_Ey)
+			{
+				result.push_back(neighbor);
+				return result; //If we have found the end, return early.
+			}
+		}
+		if(y != 0) //Left
+		{
+			neighbor = {x, y-1};
 			if(this->IsWalkable(neighbor))
 			{
 				result.push_back(neighbor);
