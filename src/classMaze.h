@@ -23,6 +23,62 @@ namespace Eng
 class Maze{
 public:
 	/**
+     * A structure to represent pixels
+     */
+	typedef struct Pixel{
+		unsigned int x; ///The x-coordinate
+		unsigned int y; ///The y-coordinate
+		bool operator ==(const Pixel& rhs) const
+		{
+			return (this->x == rhs.x && this->y == rhs.y);
+		};
+
+		bool operator !=(const Pixel& rhs) const
+		{
+			return (this->x != rhs.x || this->y != rhs.y);
+		};
+
+		bool operator <(const Pixel& rhs) const
+		{
+			return std::tie(this->x, this->y) < std::tie(rhs.x, rhs.y);
+		}
+	} Pixel;
+	/**
+     * A structure to represent weighted pixels
+     */
+	typedef struct WeightedPixel{
+		unsigned int x; ///The x-coordinate
+		unsigned int y; ///The y-coordinate
+		float w; ///The weight
+		bool operator ==(const WeightedPixel& rhs) const
+		{
+			return (this->x == rhs.x && this->y == rhs.y && this->w == rhs.w);
+		};
+		bool operator !=(const WeightedPixel& rhs) const
+		{
+			return (this->x != rhs.x || this->y != rhs.y || this->w != rhs.w);
+		};
+
+		bool operator <(const WeightedPixel& rhs) const
+		{
+			return std::tie(this->x, this->y, this->w) < std::tie(rhs.x, rhs.y, rhs.w);
+		}
+	} WeightedPixel;
+
+	/**
+     * A structure to represent colors
+     */
+	typedef struct RGB{
+		unsigned char R;
+		unsigned char G;
+		unsigned char B;
+		bool operator ==(const RGB& rhs) const
+		{
+			return (this->R == rhs.R && this->G == rhs.G && this->B == rhs.B);
+		};
+	} RGB;
+
+	/**
 	 * Initilizes a maze, based on an image file.
 	 * \param imgFile A pointer to an image file that has been loaded in CImg.
 	 */
@@ -63,17 +119,17 @@ public:
 	bool IsWalkable(unsigned int x, unsigned int y);
     /**
 	 *Tests if a pixel is a wall or not.
-	 *\param coords An unsigned int array which contains an x- and y value in the following order: {x,y}
+	 *\param coords A pixel to be tested
 	 *\return True if the pixel is walkable, false if it's a wall
 	 */
-	bool IsWalkable(std::array<unsigned int, 2> coords);
+	bool IsWalkable(Pixel coords);
 
 	/**
 	 *Tests if a pixel is a wall or not.
-	 *\param coords An unsigned int array which contains an x- and y value and a weight in the following order: {x,y, w}
+	 *\param coords A weighted pixel to be tested
 	 *\return True if the pixel is walkable, false if it's a wall
 	 */
-	bool IsWalkable(std::array<unsigned int, 3> coords);
+	bool IsWalkable(WeightedPixel coords);
 	/**
 	 *Tests if a pixel is a specific color
 	 *\param x The x-coordinate of the pixel
@@ -87,19 +143,19 @@ public:
 
 	/**
 	 *Tests if a pixel is a specific color
-	 *\param coords An unsigned int array with an x- and y coordinate in the following order: {x,y}
-	 *\param color A const unsigned char array of length 3 containing the colors in the following order: {r, g, b}
+	 *\param coords A pixel to be tested
+	 *\param color A RGB color to be tested.
 	 *\return True if the pixel is the color, false otherwise
 	 */
-	bool IsColor(std::array<unsigned int, 2> coords, std::array<unsigned char, 3>& color);
+	bool IsColor(Pixel coords, RGB& color);
     /**
 	 *Tests if a pixel is a specific color
 	 *\param x The x-coordinate of the pixel
 	 *\param y The y-coordinate of the pixel
-	 *\param color A const unsigned char array of length 3 containing the colors in the following order: {r, g, b}
+	 *\param color A RGB color to be tested.
 	 *\return True if the pixel is the color, false otherwise
 	 */
-	bool IsColor(unsigned int x, unsigned int y, std::array<unsigned char, 3>& color);
+	bool IsColor(unsigned int x, unsigned int y, RGB& color);
 
 	/**
 	 *Gets a color at a specific location
@@ -107,7 +163,7 @@ public:
 	 *\param y The y-coordinate of the pixel
 	 *\return color An unsigned char array of length 3 containing the colors in the following order: {r, g, b}
 	 */
-	const std::array<unsigned char, 3> GetColor(unsigned int x, unsigned int y);
+	const RGB GetColor(unsigned int x, unsigned int y);
 
 	/**
 	 * Runs all shortest path algorithms
@@ -126,9 +182,10 @@ public:
 	/**
 	 * Runs Dijsktra shortest path algorithm on the current maze.
 	 * \param display If true, renders the picture on screen.
+	 * \param scalar Skips said amount of rendering iterations. Usefull for larger pictures.
 	 * \param saveResult If display is true, this variable determines whether or not to save the result as a file.
 	 */
-	void RunDijkstra(bool display = false, bool saveResult = false);
+	void RunDijkstra(bool display = false, unsigned int scalar = 1, bool saveResult = false);
 	/**
 	 * Runs A* shortest path algorithm on the current maze.
 	 * \param saveResult If display is true, this variable determines whether or not to save the result as a file.
@@ -166,72 +223,94 @@ private:
 
 	/**
 	 * Runs a step on Breadth First shortest path.
-	 * \param queue Takes a queue of a length 2 unsignd int array, that is not empty.
-	 * \param came_from Takes a map of unsigned int arrays with the length 2, with a key that is an unsigned int array of length 2
+	 * \param queue Takes a queue of pixels that is not empty.
+	 * \param came_from Takes a map of pixels, with a key using a pixel. 
 	 */
-	void BreadthStep(std::queue<std::array<unsigned int, 2>>& queue,
-		             	std::map<std::array<unsigned int, 2>, std::array<unsigned int, 2>>& came_from);
+	void BreadthStep(std::vector<Pixel>& queue,
+		             	std::map<Pixel, Pixel>& came_from);
 
 	/**
 	 * Runs a step on Dijkstra shortest path.
-	 * \param queue Takes a queue of a length 3 unsigned int array, that is not empty, {x-coordinate, y-coordinate, weight}.
-	 * \param came_from Takes a map of unsigned int arrays with the length 2, with a key that is an unsigned int array of length 2
-	 * \param cost_so_far Takes a map of unsigned int, with a key that is an unsigned int array of length 2.
+	 * \param queue Takes a queue of weighted pixels that are not empty.
+	 * \param came_from Takes a map of pixels with a key that is a pixel.
+	 * \param cost_so_far Takes a map of floats, with a key that is a pixel
 	 */
-	void DijkstraStep(std::vector<std::array<unsigned int, 3>>& queue, 
-	                   std::map< std::array<unsigned int, 2>, std::array<unsigned int, 2> >& came_from,
-	                   std::map< std::array<unsigned int, 2>, unsigned int>& cost_so_far);
+	void DijkstraStep(std::vector<WeightedPixel>& queue, 
+	                   std::map< Pixel, Pixel >& came_from,
+	                   std::map< Pixel, float>& cost_so_far);
 	/**
 	 * Runs a step on A-star shortest path.
-	 * \param queue Takes a queue of a length 3 unsigned int array, that is not empty, {x-coordinate, y-coordinate, weight}.
-	 * \param came_from Takes a map of unsigned int arrays with the length 2, with a key that is an unsigned int array of length 2
-	 * \param cost_so_far Takes a map of unsigned int, with a key that is an unsigned int array of length 2.
+	 * \param queue Takes a queue of weighted pixels that are not empty.
+	 * \param came_from Takes a map of pixels with a key that is a pixel.
+	 * \param cost_so_far Takes a map of floats, with a key that is a pixel
 	 */
-	void AStarStep(std::vector<std::array<unsigned int, 3>>& queue, 
-	                   std::map< std::array<unsigned int, 2>, std::array<unsigned int, 2> >& came_from,
-	                   std::map< std::array<unsigned int, 2>, unsigned int>& cost_so_far);
+	void AStarStep(std::vector<WeightedPixel>& queue, 
+	                   std::map< Pixel, Pixel >& came_from,
+	                   std::map< Pixel, float>& cost_so_far);
 
 	/**
 	 * Finds all walkable neighbors for a given pixel.
-	 * \param coords An array of 2 unsigned ints with the coordinates of a pixel in the following order: {x,y}
-	 * \returns An unknown length vector containing unsigned int arrays of length 2. 
+	 * \param coords A pixel which we want the neighbors from.
+	 * \param FindEightNeighbors A bool which determines whether to return 8 (true) neighbors or 4 (false = default) neighbors.
+	 * \returns A vector of maximum length 8 containing the neighboring pixels. Can be empty.  
 	 */
-	std::vector<std::array<unsigned int,2>> GetNeighbors(std::array<unsigned int, 2>& coords);
+	std::vector<Pixel> GetNeighbors(Pixel& coords, bool FindEightNeighbors = false);
 	/**
 	 * Finds all walkable neighbors for a given pixel.
 	 * \param x The x-coordinate of the pixel
 	 * \param y The y-coordinate of the pixel
-	 * \returns An unknown length vector containing unsigned int arrays of length 2. 
+	 * \param FindEightNeighbors A bool which determines whether to return 8 (true) neighbors or 4 (false = default) neighbors.
+	  * \returns A vector of maximum length 8 containing the neighboring pixels. Can be empty.  
 	 */
-	std::vector<std::array<unsigned int,2>> GetNeighbors(unsigned int x, unsigned int y);
+	std::vector<Pixel> GetNeighbors(unsigned int x, unsigned int y, bool FindEightNeighbors = false);
 
 
 	/**
 	 *Color a pixel at a location
-	 *\param coords An unsigned int array with an x- and y coordinate in the following order: {x,y}
-	 *\param color A const unsigned char array of length 3 containing the colors in the following order: {r, g, b}
+	 *\param coords A pixel to be colored.
+	 *\param color The RGB color that is used.
 	 */
-	void ColorPixel(std::array<unsigned int,2> coords, std::array<unsigned char, 3> color);
+	void ColorPixel(Pixel coords, RGB color);
 	/**
 	 *Color a pixel at a location
-	 *\param coords An unsigned int array with an x- and y and a weight coordinate in the following order: {x,y, w}
-	 *\param color A const unsigned char array of length 3 containing the colors in the following order: {r, g, b}
+	 *\param coords A weighted pixel to be colored.
+	 *\param color The RGB color that is used.
 	 */
-	void ColorPixel(std::array<unsigned int,3> coords, std::array<unsigned char, 3> color);
+	void ColorPixel(WeightedPixel coords, RGB color);
     /**
 	 *Color a pixel at a location
 	 *\param x The x-coordinate of the pixel
 	 *\param y The y-coordinate of the pixel
-	 *\param color A const unsigned char array of length 3 containing the colors in the following order: {r, g, b}
+	 *\param color The RGB color that is used.
 	 */
-	void ColorPixel(unsigned int x, unsigned int y, std::array<unsigned char, 3> color);
+	void ColorPixel(unsigned int x, unsigned int y, RGB color);
+
+	/**
+	 * Gets the heuristic value between two pixels
+	 *\param goal The end pixel
+	 *\param current The current pixel being examined
+	 *\returns An unsigned int with a value representing the heuristic cost. 
+	 */
+	float GetHeuristicCost(Pixel goal, Pixel current);
+
+	/**
+	 * Gets the weighted movement cost between two pixels
+	 *\attention Only returns the correct cost if two pixels are within 1 step of each other.
+	 *\param neighbor The end pixel
+	 *\param current The current pixel being examined
+	 *\returns A float with a value representing the weighted cost. 
+	 */
+	//float GetWeightedCost(Pixel neighbor, Pixel current);
 
 
 	unsigned int m_Sx;
 	unsigned int m_Sy;
+	Pixel m_Start;
+
 
 	unsigned int m_Ex;
 	unsigned int m_Ey;
+	Pixel m_End;
 
 	bool m_startFound;
 	bool m_endFound;
