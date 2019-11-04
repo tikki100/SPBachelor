@@ -11,14 +11,14 @@ int main(int argc, const char** argv)
 {
     std::cout << "P3 Hello, world!\n" << std::endl;
 
-    std::string filename = "test03";
+    std::string filename = "test09";
 
     std::string path = "../../examples/" + filename + ".png";
     CImg<unsigned char> * img  = new CImg<unsigned char>(path.c_str());
 
     Eng::Maze Maze(img, filename);
 
-    Maze.RunAStar(true, 100);
+    Maze.RunAStar(true);
     //* img = CImg<unsigned char>(path.c_str());
     //Maze.RunBreadth(true);
     //Maze.RunBreadth();

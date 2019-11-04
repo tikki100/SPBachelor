@@ -424,11 +424,13 @@ void Maze::RunAStar(bool display, unsigned int scalar, bool saveResult)
 		CImgDisplay main_disp((*this->img),"A* Search", 0);
 		if(scalar == 0) 
 			scalar = 1;
+		int i = 0;
 
 	    while (!main_disp.is_closed()) 
 	    {
 	    	main_disp.resize(500,500).display((*this->img));
-			if(!queue.empty())
+	    	i++;
+			if(!queue.empty() || i == 50)
 			{
 				for(int i = 0; i < 1*scalar; i++)
 				{
@@ -493,6 +495,12 @@ void Maze::AStarStep(std::vector<WeightedPixel>& queue,
 		throw std::invalid_argument( "Attempted to do DijkstraStep on an empty queue." );
 
 	std::sort(queue.begin(), queue.end(), [this](auto l, auto r) {return (l.w > r.w); });
+	std::cout << "Entire queue" << std::endl;
+
+	for(WeightedPixel pixel : queue)
+	{
+		std::cout << "{" << pixel.x << "," << pixel.y << "," << pixel.w << "}" << std::endl;
+	}
 
 	WeightedPixel coords = queue.back();
 	Pixel current = {coords.x, coords.y};
@@ -537,14 +545,22 @@ float Maze::GetHeuristicCost(Pixel goal, Pixel current)
 	unsigned int res = 0;
 	//HACK - We are open to an overflow error.
 	if(goal.x > current.x)
+	{
 		res += goal.x - current.x;
+	}
 	else
+	{
 		res += current.x - goal.x;
+	}
 
 	if(goal.y > current.y)
+	{
 		res += goal.y - current.y;
+	}
 	else
-		res += goal.y - current.y;
+	{
+		res += current.y - goal.y;
+	}
 
 	//Manhatten distance
 	return res;
