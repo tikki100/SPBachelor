@@ -402,7 +402,7 @@ void Maze::DijkstraStep(std::vector<WeightedPixel>& queue,
 	}
 }
 
-void Maze::RunAStar(bool display, bool saveResult)
+void Maze::RunAStar(bool display, unsigned int scalar, bool saveResult)
 {
 	std::cout << "Running A*!" << std::endl;
 	std::vector<WeightedPixel> queue;
@@ -421,7 +421,46 @@ void Maze::RunAStar(bool display, bool saveResult)
 
 	if(display)
 	{
-		//TODO
+		CImgDisplay main_disp((*this->img),"A* Search", 0);
+		if(scalar == 0) 
+			scalar = 1;
+
+	    while (!main_disp.is_closed()) 
+	    {
+	    	main_disp.resize(500,500).display((*this->img));
+			if(!queue.empty())
+			{
+				for(int i = 0; i < 1*scalar; i++)
+				{
+					this->AStarStep(queue, came_from, cost_so_far);
+					if(queue.empty())
+						break;
+				}
+			}
+			else if(queue.empty() && current != start)
+			{
+				unsigned int cond = (1 * scalar/100);
+				if (cond == 0)
+					cond = 1;
+				for(int i = 0; i < 1*cond; i++)
+				{
+					this->ColorPixel(current, {255, 0, 0});
+			        current = came_from[current];
+			        if(current == start)
+			        {
+			        	this->ColorPixel(current, {255, 0, 0});
+			        }
+			        if(queue.empty() || current == start)
+						break;
+		    	}
+			}
+	    }
+
+	    if(saveResult)
+	    {
+	    	std::string saveName = this->exampleFolder + this->m_name + "_astar.png";
+	    	this->img->save(saveName.c_str());
+	    }
 	}
 	else
 	{
@@ -429,6 +468,17 @@ void Maze::RunAStar(bool display, bool saveResult)
 		{
 			this->AStarStep(queue, came_from, cost_so_far);
 		}
+		std::cout << "Coloring start" << std::endl;
+		while(current != start)
+		{
+			this->ColorPixel(current, {255, 0, 0});
+			current = came_from[current];
+		}
+		this->ColorPixel(start, {255, 0, 0});
+
+		std::string saveName = this->exampleFolder + this->m_name + "_astar.png";
+
+		this->img->save(saveName.c_str());
 	}
 }
 
@@ -484,7 +534,21 @@ void Maze::AStarStep(std::vector<WeightedPixel>& queue,
 
 float Maze::GetHeuristicCost(Pixel goal, Pixel current)
 {
-	return 0.0f;
+	unsigned int res = 0;
+	//HACK - We are open to an overflow error.
+	if(goal.x > current.x)
+		res += goal.x - current.x;
+	else
+		res += current.x - goal.x;
+
+	if(goal.y > current.y)
+		res += goal.y - current.y;
+	else
+		res += goal.y - current.y;
+
+	//Manhatten distance
+	return res;
+
 }
 
 float Maze::GetWeightedCost(Pixel neighbor, Pixel current)
@@ -499,7 +563,7 @@ float Maze::GetWeightedCost(Pixel neighbor, Pixel current)
 	else
 		cost = 1.41f;*/
 
-	float cost = 1.0f
+	float cost = 1.0f;
 
 	return cost;
 }
@@ -617,7 +681,10 @@ std::vector<Maze::Pixel> Maze::GetNeighbors(unsigned int x, unsigned int y, bool
 
 void Maze::RunAll()
 {
+	//TODO
+	//Currently doesn't function as the picture is overwritten when loaded into memory.
 	this->RunBreadth();
+	this->RunDijkstra();
 	this->RunAStar();
 }
 

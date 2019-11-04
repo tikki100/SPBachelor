@@ -190,7 +190,7 @@ public:
 	 * Runs A* shortest path algorithm on the current maze.
 	 * \param saveResult If display is true, this variable determines whether or not to save the result as a file.
 	 */
-	void RunAStar(bool display = false, bool saveResult = false);
+	void RunAStar(bool display = false, unsigned int scalar = 1, bool saveResult = false);
 	/**
 	 * Runs HPA* shortest path algorithm on the current maze.
 	 * \param saveResult If display is true, this variable determines whether or not to save the result as a file.
@@ -300,7 +300,7 @@ private:
 	 *\param current The current pixel being examined
 	 *\returns A float with a value representing the weighted cost. 
 	 */
-	//float GetWeightedCost(Pixel neighbor, Pixel current);
+	float GetWeightedCost(Pixel neighbor, Pixel current);
 
 
 	unsigned int m_Sx;
