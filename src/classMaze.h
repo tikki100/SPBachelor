@@ -61,7 +61,7 @@ public:
 
 		bool operator <(const WeightedPixel& rhs) const
 		{
-			return std::tie(this->x, this->y, this->w) < std::tie(rhs.x, rhs.y, rhs.w);
+			return this->w < rhs.w;
 		}
 	} WeightedPixel;
 
