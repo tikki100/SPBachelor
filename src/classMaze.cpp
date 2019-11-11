@@ -241,7 +241,7 @@ void Maze::BreadthStep(std::vector<Pixel>& queue,
 		throw std::invalid_argument( "Attempted to do BreadthStep on an empty queue." );
 
 	Pixel current = queue.front();
-	queue.pop_back();
+	queue.erase(queue.begin());
 
 	std::vector<Pixel> neighbors = this->GetNeighbors(current);
 
@@ -264,7 +264,7 @@ void Maze::BreadthStep(std::vector<Pixel>& queue,
 			{
 				this->ColorPixel(neighbor, grey);
 				came_from.emplace(neighbor, current);
-				queue.push_back(neighbor);
+				queue.emplace_back(neighbor);
 			}
 		}
 	}
@@ -495,12 +495,12 @@ void Maze::AStarStep(std::vector<WeightedPixel>& queue,
 		throw std::invalid_argument( "Attempted to do DijkstraStep on an empty queue." );
 
 	std::sort(queue.begin(), queue.end(), [this](auto l, auto r) {return (l.w > r.w); });
-	std::cout << "Entire queue" << std::endl;
+	/*std::cout << "Entire queue" << std::endl;
 
 	for(WeightedPixel pixel : queue)
 	{
 		std::cout << "{" << pixel.x << "," << pixel.y << "," << pixel.w << "}" << std::endl;
-	}
+	}*/
 
 	WeightedPixel coords = queue.back();
 	Pixel current = {coords.x, coords.y};
