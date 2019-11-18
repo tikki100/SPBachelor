@@ -61,9 +61,10 @@ public:
 
 		bool operator <(const WeightedPixel& rhs) const
 		{
-			return this->w < rhs.w;
+			return rhs.w < this->w;
 		}
 	} WeightedPixel;
+
 
 	/**
      * A structure to represent colors
@@ -81,6 +82,7 @@ public:
 	/**
 	 * Initilizes a maze, based on an image file.
 	 * \param imgFile A pointer to an image file that has been loaded in CImg.
+	 * \param name The name of the picture
 	 */
 	Maze(CImg<unsigned char> * imgFile, std::string name);
 
@@ -226,7 +228,7 @@ private:
 	 * \param queue Takes a queue of pixels that is not empty.
 	 * \param came_from Takes a map of pixels, with a key using a pixel. 
 	 */
-	void BreadthStep(std::vector<Pixel>& queue,
+	void BreadthStep(std::queue<Pixel>& queue,
 		             	std::map<Pixel, Pixel>& came_from);
 
 	/**
@@ -235,7 +237,7 @@ private:
 	 * \param came_from Takes a map of pixels with a key that is a pixel.
 	 * \param cost_so_far Takes a map of floats, with a key that is a pixel
 	 */
-	void DijkstraStep(std::vector<WeightedPixel>& queue, 
+	void DijkstraStep(std::priority_queue<WeightedPixel>& queue, 
 	                   std::map< Pixel, Pixel >& came_from,
 	                   std::map< Pixel, float>& cost_so_far);
 	/**
@@ -244,25 +246,25 @@ private:
 	 * \param came_from Takes a map of pixels with a key that is a pixel.
 	 * \param cost_so_far Takes a map of floats, with a key that is a pixel
 	 */
-	void AStarStep(std::vector<WeightedPixel>& queue, 
+	void AStarStep(std::priority_queue<WeightedPixel>& queue, 
 	                   std::map< Pixel, Pixel >& came_from,
 	                   std::map< Pixel, float>& cost_so_far);
 
 	/**
 	 * Finds all walkable neighbors for a given pixel.
 	 * \param coords A pixel which we want the neighbors from.
-	 * \param FindEightNeighbors A bool which determines whether to return 8 (true) neighbors or 4 (false = default) neighbors.
+	 * \param FindEightNeighbors A bool which determines whether to return 8 (true) neighbors or 4 (false) neighbors.
 	 * \returns A vector of maximum length 8 containing the neighboring pixels. Can be empty.  
 	 */
-	std::vector<Pixel> GetNeighbors(Pixel& coords, bool FindEightNeighbors = false);
+	std::vector<Pixel> GetNeighbors(Pixel& coords, bool FindEightNeighbors = true);
 	/**
 	 * Finds all walkable neighbors for a given pixel.
 	 * \param x The x-coordinate of the pixel
 	 * \param y The y-coordinate of the pixel
-	 * \param FindEightNeighbors A bool which determines whether to return 8 (true) neighbors or 4 (false = default) neighbors.
+	 * \param FindEightNeighbors A bool which determines whether to return 8 (true) neighbors or 4 (false) neighbors.
 	  * \returns A vector of maximum length 8 containing the neighboring pixels. Can be empty.  
 	 */
-	std::vector<Pixel> GetNeighbors(unsigned int x, unsigned int y, bool FindEightNeighbors = false);
+	std::vector<Pixel> GetNeighbors(unsigned int x, unsigned int y, bool FindEightNeighbors = true);
 
 
 	/**

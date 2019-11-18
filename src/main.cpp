@@ -9,19 +9,44 @@ using namespace cimg_library;
 
 int main(int argc, const char** argv)
 {
-    std::cout << "P3 Hello, world!\n" << std::endl;
-
-    std::string filename = "test10";
+	//TYPE THE EXAMPLE NAME HERE
+    std::string filename = "test09";
 
     std::string path = "../../examples/" + filename + ".png";
+    std::cout << "Loading example from path " << path << std::endl;
     CImg<unsigned char> * img  = new CImg<unsigned char>(path.c_str());
 
     Eng::Maze Maze(img, filename);
 
-    //Maze.RunAStar(true);
-    //* img = CImg<unsigned char>(path.c_str());
-    //Maze.RunBreadth(true);
-    //Maze.RunBreadth();
+
+    //Maze.RunBreadth(true, 40000);
+    Maze.RunBreadth();
+    * img = CImg<unsigned char>(path.c_str());
+    Maze.RunDijkstra();
+    * img = CImg<unsigned char>(path.c_str());
+    Maze.RunAStar();
+
+   
+
+    /*
+    for(int i = 1; i < 10; i++)
+    {
+    	std::string filename = "test0";
+    	filename += std::to_string(i);
+    	std::string path = "../../examples/" + filename + ".png";
+	    std::cout << "Loading example from path " << path << std::endl;
+	    CImg<unsigned char> * img  = new CImg<unsigned char>(path.c_str());
+
+	    Eng::Maze Maze(img, filename);
+	    //Maze.RunBreadth(true, 40000);
+	    Maze.RunBreadth();
+	    * img = CImg<unsigned char>(path.c_str());
+	    Maze.RunDijkstra();
+	    * img = CImg<unsigned char>(path.c_str());
+	    Maze.RunAStar();
+	}*/
+
+
 
 
 
@@ -30,4 +55,5 @@ int main(int argc, const char** argv)
     printf("End of program \n");
 
     return 0;
+
 }

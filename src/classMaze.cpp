@@ -153,12 +153,12 @@ int Maze::GetEndY(){ return this->m_Ey;}
 void Maze::RunBreadth(bool display, unsigned int scalar, bool saveResult)
 {
 	std::cout << "Running Breadth!" << std::endl;
-	std::vector<Pixel> queue;
+	std::queue<Pixel> queue;
 	std::map<Pixel, Pixel> came_from;
 
-	queue.push_back({this->m_Sx, this->m_Sy});
-	Pixel Test = {this->m_Sx, this->m_Sy};
-	came_from[Test] = Test;
+
+	queue.emplace(this->m_Start);
+	came_from[this->m_Start] = this->m_Start;
 
 	
 	if(display)
@@ -167,14 +167,20 @@ void Maze::RunBreadth(bool display, unsigned int scalar, bool saveResult)
 			scalar = 1;
 		CImgDisplay main_disp((*this->img),"Breadth First Search", 0);
 
-		Pixel current = {this->m_Ex, this->m_Ey};
-		Pixel start = {this->m_Sx, this->m_Sy};
+		Pixel current = this->m_End;
+		Pixel start = this->m_Start;
 
+		unsigned int i;
 	    while (!main_disp.is_closed()) 
 	    {
 	    	main_disp.resize(500,500).display((*this->img));
 			if(!queue.empty())
 			{
+				i++;
+				if(i % 100 == true)
+				{
+					std::cout << "Queue size: " << queue.size() << std::endl;
+				}
 				for(unsigned int i = 0; i < 1 * scalar; i++)
 				{
 					this->BreadthStep(queue, came_from);
@@ -208,8 +214,9 @@ void Maze::RunBreadth(bool display, unsigned int scalar, bool saveResult)
 
 	else
 	{
-		Pixel current = {this->m_Ex, this->m_Ey};
-		Pixel start = {this->m_Sx, this->m_Sy};
+		Pixel current = this->m_End;
+		Pixel start = this->m_Start;
+		unsigned int i = 0;
 
 		while(!queue.empty())
 		{
@@ -230,7 +237,7 @@ void Maze::RunBreadth(bool display, unsigned int scalar, bool saveResult)
 
 }
 
-void Maze::BreadthStep(std::vector<Pixel>& queue, 
+void Maze::BreadthStep(std::queue<Pixel>& queue, 
 	                   	std::map< Pixel, Pixel >& came_from)
 {
 	RGB grey = {126, 126, 126};
@@ -241,20 +248,17 @@ void Maze::BreadthStep(std::vector<Pixel>& queue,
 		throw std::invalid_argument( "Attempted to do BreadthStep on an empty queue." );
 
 	Pixel current = queue.front();
-	queue.erase(queue.begin());
+	queue.pop();
 
 	std::vector<Pixel> neighbors = this->GetNeighbors(current);
 
 	for(Pixel neighbor : neighbors)
 	{
-
-		//std::cout << "Checking: {" << neighbor.x << "," << neighbor.y << "} came from: {" << current.x << "," << current.y << "}" << std::endl;
-
 		if(neighbor.x == this->m_Ex && neighbor.y == this->m_Ey)
 		{
 			//Break the loop
 			std::cout << "Found end!" << std::endl;
-			queue.clear();
+			queue = std::queue<Pixel>();
 			came_from.emplace(neighbor, current);
 			return;
 		}
@@ -264,7 +268,7 @@ void Maze::BreadthStep(std::vector<Pixel>& queue,
 			{
 				this->ColorPixel(neighbor, grey);
 				came_from.emplace(neighbor, current);
-				queue.emplace_back(neighbor);
+				queue.emplace(neighbor);
 			}
 		}
 	}
@@ -273,19 +277,18 @@ void Maze::BreadthStep(std::vector<Pixel>& queue,
 void Maze::RunDijkstra(bool display, unsigned int scalar, bool saveResult)
 {
 	std::cout << "Running Djikstra!" << std::endl;
-	std::vector<WeightedPixel> queue;
-	queue.reserve(100);
+	std::priority_queue<WeightedPixel> queue;
 
 	std::map<Pixel, Pixel> came_from;
 	std::map<Pixel, float> cost_so_far;
 
-	came_from[{this->m_Sx, this->m_Sy}] = {this->m_Sx, this->m_Sy};
-	cost_so_far[{this->m_Sx, this->m_Sy}] = 0.0f;
+	came_from[this->m_Start] = this->m_Start;
+	cost_so_far[this->m_Start] = 0.0f;
 
-	queue.emplace_back((WeightedPixel){this->m_Sx, this->m_Sy, 0});
+	queue.emplace((WeightedPixel){this->m_Sx, this->m_Sy, 0});
 
-	Pixel current = {this->m_Ex, this->m_Ey};
-	Pixel start = {this->m_Sx, this->m_Sy};
+	Pixel current = this->m_End;
+	Pixel start = this->m_Start;
 
 	if(display)
 	{
@@ -351,7 +354,7 @@ void Maze::RunDijkstra(bool display, unsigned int scalar, bool saveResult)
 	}
 }
 
-void Maze::DijkstraStep(std::vector<WeightedPixel>& queue, 
+void Maze::DijkstraStep(std::priority_queue<WeightedPixel>& queue, 
 	                   		std::map< Pixel, Pixel >& came_from,
 	                   		std::map< Pixel, float>& cost_so_far)
 {
@@ -361,12 +364,10 @@ void Maze::DijkstraStep(std::vector<WeightedPixel>& queue,
 	if(queue.empty())
 		throw std::invalid_argument( "Attempted to do DijkstraStep on an empty queue." );
 
-	std::sort(queue.begin(), queue.end(), [this](auto l, auto r) {return (l.w > r.w); });
-
-	WeightedPixel coords = queue.back();
+	WeightedPixel coords = queue.top();
 	Pixel current = {coords.x, coords.y};
 
-	queue.pop_back();
+	queue.pop();
 
 	std::vector<Pixel> neighbors = this->GetNeighbors(current);
 
@@ -384,7 +385,7 @@ void Maze::DijkstraStep(std::vector<WeightedPixel>& queue,
 			std::cout << "Found end!" << std::endl;
 			came_from[neighbor] = current;
 			cost_so_far[neighbor] = new_weight;
-			queue.clear();
+			queue = std::priority_queue<WeightedPixel>();
 			return;
 		}
 		else
@@ -394,7 +395,7 @@ void Maze::DijkstraStep(std::vector<WeightedPixel>& queue,
 			{
 				cost_so_far[neighbor] = new_weight;
 				WeightedPixel neigh_weighted = {neighbor.x, neighbor.y, new_weight};
-				queue.emplace_back(neigh_weighted);
+				queue.push(neigh_weighted);
 				came_from[neighbor] = current;
 			}
 
@@ -405,8 +406,7 @@ void Maze::DijkstraStep(std::vector<WeightedPixel>& queue,
 void Maze::RunAStar(bool display, unsigned int scalar, bool saveResult)
 {
 	std::cout << "Running A*!" << std::endl;
-	std::vector<WeightedPixel> queue;
-	queue.reserve(100);
+	std::priority_queue<WeightedPixel> queue;
 
 	std::map< Pixel, Pixel> came_from;
 	std::map< Pixel, float> cost_so_far;
@@ -414,7 +414,7 @@ void Maze::RunAStar(bool display, unsigned int scalar, bool saveResult)
 	came_from[{this->m_Sx, this->m_Sy}] = {this->m_Sx, this->m_Sy};
 	cost_so_far[{this->m_Sx, this->m_Sy}] = 0;
 
-	queue.emplace_back((WeightedPixel){this->m_Sx, this->m_Sy, 0});
+	queue.emplace((WeightedPixel){this->m_Sx, this->m_Sy, 0});
 
 	Pixel current = {this->m_Ex, this->m_Ey};
 	Pixel start = {this->m_Sx, this->m_Sy};
@@ -424,13 +424,11 @@ void Maze::RunAStar(bool display, unsigned int scalar, bool saveResult)
 		CImgDisplay main_disp((*this->img),"A* Search", 0);
 		if(scalar == 0) 
 			scalar = 1;
-		int i = 0;
 
 	    while (!main_disp.is_closed()) 
 	    {
 	    	main_disp.resize(500,500).display((*this->img));
-	    	i++;
-			if(!queue.empty() || i == 50)
+			if(!queue.empty())
 			{
 				for(int i = 0; i < 1*scalar; i++)
 				{
@@ -484,7 +482,7 @@ void Maze::RunAStar(bool display, unsigned int scalar, bool saveResult)
 	}
 }
 
-void Maze::AStarStep(std::vector<WeightedPixel>& queue, 
+void Maze::AStarStep(std::priority_queue<WeightedPixel>& queue, 
 	                   		std::map< Pixel, Pixel >& came_from,
 	                   		std::map< Pixel, float>& cost_so_far)
 {
@@ -494,18 +492,10 @@ void Maze::AStarStep(std::vector<WeightedPixel>& queue,
 	if(queue.empty())
 		throw std::invalid_argument( "Attempted to do DijkstraStep on an empty queue." );
 
-	std::sort(queue.begin(), queue.end(), [this](auto l, auto r) {return (l.w > r.w); });
-	/*std::cout << "Entire queue" << std::endl;
-
-	for(WeightedPixel pixel : queue)
-	{
-		std::cout << "{" << pixel.x << "," << pixel.y << "," << pixel.w << "}" << std::endl;
-	}*/
-
-	WeightedPixel coords = queue.back();
+	WeightedPixel coords = queue.top();
 	Pixel current = {coords.x, coords.y};
 
-	queue.pop_back();
+	queue.pop();
 
 	std::vector<Pixel> neighbors = this->GetNeighbors(current);
 
@@ -513,15 +503,13 @@ void Maze::AStarStep(std::vector<WeightedPixel>& queue,
 	{
 		unsigned int new_weight = cost_so_far[current] + 1;
 
-		//std::cout << "Checking: {" << neighbor[0] << "," << neighbor[1] << "}" << std::endl;
-
 		if(neighbor.x == this->m_Ex && neighbor.y == this->m_Ey)
 		{
 			//Break the loop
 			std::cout << "Found end!" << std::endl;
 			came_from[neighbor] = current;
 			cost_so_far[neighbor] = new_weight;
-			queue.clear();
+			queue = std::priority_queue<WeightedPixel>();
 			return;
 		}
 		else
@@ -532,7 +520,7 @@ void Maze::AStarStep(std::vector<WeightedPixel>& queue,
 				cost_so_far[neighbor] = new_weight;
 				float priority = new_weight + this->GetHeuristicCost(m_End, neighbor);
 				WeightedPixel neigh_weighted = {neighbor.x, neighbor.y, priority};
-				queue.emplace_back(neigh_weighted);
+				queue.emplace(neigh_weighted);
 				came_from[neighbor] = current;
 			}
 
@@ -542,28 +530,29 @@ void Maze::AStarStep(std::vector<WeightedPixel>& queue,
 
 float Maze::GetHeuristicCost(Pixel goal, Pixel current)
 {
-	unsigned int res = 0;
+	unsigned long long res = 0;
 	//HACK - We are open to an overflow error.
-	if(goal.x > current.x)
+	//We always want a positive integer, since we use unsigned ints.
+	if(goal.x >= current.x)
 	{
-		res += goal.x - current.x;
+		  res += std::pow(goal.x - current.x, 2);
 	}
 	else
 	{
-		res += current.x - goal.x;
+		res += std::pow(current.x - goal.x, 2);
 	}
 
-	if(goal.y > current.y)
+	if(goal.y >= current.y)
 	{
-		res += goal.y - current.y;
+		res += std::pow(goal.y - current.y,2);
 	}
 	else
 	{
-		res += current.y - goal.y;
+		res += std::pow(current.y - goal.y,2);
 	}
 
-	//Manhatten distance
-	return res;
+	//Euclidean distance
+	return std::sqrt(res);
 
 }
 
