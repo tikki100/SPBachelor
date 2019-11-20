@@ -121,7 +121,7 @@ bool Maze::IsColor(unsigned int x, unsigned int y, RGB& color)
 	return false;
 }
 
-const Maze::RGB Maze::GetColor(unsigned int x, unsigned int y)
+const RGB Maze::GetColor(unsigned int x, unsigned int y)
 {
 	return {(*this->img)(x,y, 0), (*this->img)(x,y, 1), (*this->img)(x,y, 2)};
 }
@@ -339,7 +339,6 @@ void Maze::RunDijkstra(bool display, unsigned int scalar, bool saveResult)
 		{
 			this->DijkstraStep(queue, came_from, cost_so_far);
 		}
-		std::cout << "Coloring start" << std::endl;
 		while(current != start)
 		{
 			this->ColorPixel(current, {255, 0, 0});
@@ -373,8 +372,6 @@ void Maze::DijkstraStep(std::priority_queue<WeightedPixel>& queue,
 
 	for(Pixel neighbor : neighbors)
 	{
-		//Since the cost between is always 1, we add 1 to the new weight.
-		//new_weight = cost_so_far[coords] + cost_between(coords, next)
 		float new_weight = cost_so_far[current] + this->GetWeightedCost(neighbor, current);
 
 		//std::cout << "Checking: {" << neighbor.x << "," << neighbor.y << "}" << std::endl;
@@ -395,7 +392,7 @@ void Maze::DijkstraStep(std::priority_queue<WeightedPixel>& queue,
 			{
 				cost_so_far[neighbor] = new_weight;
 				WeightedPixel neigh_weighted = {neighbor.x, neighbor.y, new_weight};
-				queue.push(neigh_weighted);
+				queue.emplace(neigh_weighted);
 				came_from[neighbor] = current;
 			}
 
@@ -411,13 +408,13 @@ void Maze::RunAStar(bool display, unsigned int scalar, bool saveResult)
 	std::map< Pixel, Pixel> came_from;
 	std::map< Pixel, float> cost_so_far;
 
-	came_from[{this->m_Sx, this->m_Sy}] = {this->m_Sx, this->m_Sy};
-	cost_so_far[{this->m_Sx, this->m_Sy}] = 0;
+	came_from[this->m_Start] = this->m_Start;
+	cost_so_far[this->m_Start] = 0;
 
 	queue.emplace((WeightedPixel){this->m_Sx, this->m_Sy, 0});
 
-	Pixel current = {this->m_Ex, this->m_Ey};
-	Pixel start = {this->m_Sx, this->m_Sy};
+	Pixel current = this->m_End;
+	Pixel start = this->m_Start;
 
 	if(display)
 	{
@@ -468,7 +465,6 @@ void Maze::RunAStar(bool display, unsigned int scalar, bool saveResult)
 		{
 			this->AStarStep(queue, came_from, cost_so_far);
 		}
-		std::cout << "Coloring start" << std::endl;
 		while(current != start)
 		{
 			this->ColorPixel(current, {255, 0, 0});
@@ -501,7 +497,7 @@ void Maze::AStarStep(std::priority_queue<WeightedPixel>& queue,
 
 	for(Pixel neighbor : neighbors)
 	{
-		unsigned int new_weight = cost_so_far[current] + 1;
+		float new_weight = cost_so_far[current] + this->GetWeightedCost(neighbor, current);;
 
 		if(neighbor.x == this->m_Ex && neighbor.y == this->m_Ey)
 		{
@@ -558,17 +554,15 @@ float Maze::GetHeuristicCost(Pixel goal, Pixel current)
 
 float Maze::GetWeightedCost(Pixel neighbor, Pixel current)
 {
-	/*
 	float cost = 0.0f;
 	if(neighbor == current)
 		return cost;
 
+	//The cost to move in a straight line is 1, while diagonally is sqrt(2)
 	if((current.x - neighbor.x == 0) || (current.y - neighbor.y == 0))
 		cost = 1.0f;
 	else
-		cost = 1.41f;*/
-
-	float cost = 1.0f;
+		cost = 1.414f;
 
 	return cost;
 }
@@ -579,12 +573,12 @@ void Maze::Test()
 
 }
 
-std::vector<Maze::Pixel> Maze::GetNeighbors(Pixel& coords, bool FindEightNeighbors)
+std::vector<Pixel> Maze::GetNeighbors(Pixel& coords, bool FindEightNeighbors)
 {
 	return this->GetNeighbors(coords.x, coords.y, FindEightNeighbors);
 }
 
-std::vector<Maze::Pixel> Maze::GetNeighbors(unsigned int x, unsigned int y, bool FindEightNeighbors)
+std::vector<Pixel> Maze::GetNeighbors(unsigned int x, unsigned int y, bool FindEightNeighbors)
 {
 	std::vector<Pixel> result;
 

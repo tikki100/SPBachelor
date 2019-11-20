@@ -4,6 +4,7 @@
 #include "CImg.h"
 using namespace cimg_library;
 #include <iostream>
+#include "structPixels.h"
 
 #include <array>
 #include <vector>
@@ -22,63 +23,6 @@ namespace Eng
   */	
 class Maze{
 public:
-	/**
-     * A structure to represent pixels
-     */
-	typedef struct Pixel{
-		unsigned int x; ///The x-coordinate
-		unsigned int y; ///The y-coordinate
-		bool operator ==(const Pixel& rhs) const
-		{
-			return (this->x == rhs.x && this->y == rhs.y);
-		};
-
-		bool operator !=(const Pixel& rhs) const
-		{
-			return (this->x != rhs.x || this->y != rhs.y);
-		};
-
-		bool operator <(const Pixel& rhs) const
-		{
-			return std::tie(this->x, this->y) < std::tie(rhs.x, rhs.y);
-		}
-	} Pixel;
-	/**
-     * A structure to represent weighted pixels
-     */
-	typedef struct WeightedPixel{
-		unsigned int x; ///The x-coordinate
-		unsigned int y; ///The y-coordinate
-		float w; ///The weight
-		bool operator ==(const WeightedPixel& rhs) const
-		{
-			return (this->x == rhs.x && this->y == rhs.y && this->w == rhs.w);
-		};
-		bool operator !=(const WeightedPixel& rhs) const
-		{
-			return (this->x != rhs.x || this->y != rhs.y || this->w != rhs.w);
-		};
-
-		bool operator <(const WeightedPixel& rhs) const
-		{
-			return rhs.w < this->w;
-		}
-	} WeightedPixel;
-
-
-	/**
-     * A structure to represent colors
-     */
-	typedef struct RGB{
-		unsigned char R;
-		unsigned char G;
-		unsigned char B;
-		bool operator ==(const RGB& rhs) const
-		{
-			return (this->R == rhs.R && this->G == rhs.G && this->B == rhs.B);
-		};
-	} RGB;
-
 	/**
 	 * Initilizes a maze, based on an image file.
 	 * \param imgFile A pointer to an image file that has been loaded in CImg.
