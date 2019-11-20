@@ -19,14 +19,14 @@ public:
 	 * Initilizes an HPA Maze.
 	 * \param imgFile A pointer to an image file that has been loaded in CImg.
 	 */
-	Maze(CImg<unsigned char> * imgFile);
+	HPAMaze(CImg<unsigned char> * imgFile);
 
 	/**
 	 *Destroyes the current instance of the maze
 	 */
-	virtual ~Maze();
+	virtual ~HPAMaze();
 
 private:
 
-} //End of class HPAMaze
+}; //End of class HPAMaze
 } //End of namespace Eng
