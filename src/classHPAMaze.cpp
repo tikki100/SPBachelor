@@ -3,7 +3,7 @@
 namespace Eng
 { //Start of Eng
 
-	HPAMaze::HPAMaze(CImg<unsigned char> * imgFile)
+	HPAMaze::HPAMaze(CImg<unsigned char> * imgFile, unsigned int maxLevel, unsigned int clusterSize)
 	{
 
 	}

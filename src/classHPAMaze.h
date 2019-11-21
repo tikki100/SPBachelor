@@ -3,7 +3,6 @@
 #define cimg_use_png 1
 #include "CImg.h"
 using namespace cimg_library;
-#include <iostream>
 
 #include "structPixels.h"
 
@@ -18,8 +17,10 @@ public:
 	/**
 	 * Initilizes an HPA Maze.
 	 * \param imgFile A pointer to an image file that has been loaded in CImg.
+	 * \param maxLevel The maximum level of abstractions
+	 * \param clusterSize The size of each cluster
 	 */
-	HPAMaze(CImg<unsigned char> * imgFile);
+	HPAMaze(CImg<unsigned char> * imgFile, unsigned int maxLevel, unsigned int clusterSize);
 
 	/**
 	 *Destroyes the current instance of the maze

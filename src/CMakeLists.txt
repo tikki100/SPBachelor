@@ -7,6 +7,7 @@ add_executable(
 	main.cpp
 	classMaze.cpp
 	classHPAMaze.cpp
+	classCluster.cpp
 )
 
 #target_link_libraries(${program} ${SYSTEM_LIBS} )
