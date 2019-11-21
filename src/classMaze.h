@@ -3,17 +3,16 @@
 #define cimg_use_png 1
 #include "CImg.h"
 using namespace cimg_library;
-#include <iostream>
-#include "structPixels.h"
 
+#include <iostream>
 #include <array>
 #include <vector>
-
 #include <queue>
 #include <map>
-
 #include <string>
 #include <algorithm>
+
+#include "structPixels.h"
 
 namespace Eng
 {
@@ -37,25 +36,36 @@ public:
 
 	/**
 	 *Get the start value for x
-	 *\return An integer for the starting X-coordinate
+	 *\return An unsigned integer for the starting X-coordinate
 	 */
-	int GetStartX();
+	unsigned int GetStartX() { return this->m_Sx; };
 	/**
 	 *Get the start value for y
-	 *\return An integer for the starting y-coordinate
+	 *\return An unsigned integer for the starting y-coordinate
 	 */
-	int GetStartY();
+	unsigned int GetStartY() { return this->m_Sy; };
+	/**
+	 *Gets the starting pixel
+	 *\return A pixel containing the coordinates for the starting point.
+	 */
+	Pixel GetStart() { return this->m_Start; };
 
 	/**
 	 *Get the end value for x
-	 *\return An integer for the ending X-coordinate
+	 *\return An unsigned integer for the ending X-coordinate
 	 */
-	int GetEndX();
+	unsigned int GetEndX() { return this->m_Ex; };
 	/**
 	 *Get the end value for y
-	 *\return An integer for the ending Y-coordinate
+	 *\return An unsigned integer for the ending Y-coordinate
 	 */
-	int GetEndY();
+	unsigned int GetEndY() { return this->m_Ey; };
+	/**
+	 *Gets the end pixel
+	 *\return A pixel containing the coordinates for the end point.
+	 */
+	Pixel GetEnd() { return this->m_End; };
+
 	/**
 	 *Tests if a pixel is a wall or not.
 	 *\param x The x-coordinate of the pixel
@@ -89,27 +99,50 @@ public:
 
 	/**
 	 *Tests if a pixel is a specific color
-	 *\param coords A pixel to be tested
-	 *\param color A RGB color to be tested.
-	 *\return True if the pixel is the color, false otherwise
-	 */
-	bool IsColor(Pixel coords, RGB& color);
-    /**
-	 *Tests if a pixel is a specific color
 	 *\param x The x-coordinate of the pixel
 	 *\param y The y-coordinate of the pixel
 	 *\param color A RGB color to be tested.
 	 *\return True if the pixel is the color, false otherwise
 	 */
 	bool IsColor(unsigned int x, unsigned int y, RGB& color);
+	/**
+	 *Tests if a pixel is a specific color
+	 *\param coords A pixel to be tested
+	 *\param red A char value between 0-255 for the red pixel
+	 *\param green A char value between 0-255 for the green pixel
+	 *\param blue A char value between 0-255 for the blue pixel
+	 *\return True if the pixel is the color, false otherwise
+	 */
+	bool IsColor(Pixel& coords, unsigned char r, unsigned char g, unsigned char b);
+	/**
+	 *Tests if a pixel is a specific color
+	 *\param coords A pixel to be tested
+	 *\param color A RGB color to be tested.
+	 *\return True if the pixel is the color, false otherwise
+	 */
+	bool IsColor(Pixel& coords, RGB& color);
 
 	/**
 	 *Gets a color at a specific location
 	 *\param x The x-coordinate of the pixel
 	 *\param y The y-coordinate of the pixel
-	 *\return color An unsigned char array of length 3 containing the colors in the following order: {r, g, b}
+	 *\return color An RGB containing the color of the pixel at the location
 	 */
 	const RGB GetColor(unsigned int x, unsigned int y);
+
+	/**
+	 *Gets a color at a specific location
+	 *\param coords A pixel to be tested
+	 *\return color An RGB containing the color of the pixel at the location
+	 */
+	const RGB GetColor(Pixel& coords);
+
+	/**
+	 *Gets a color at a specific location
+	 *\param coords A weighted pixel to be tested
+	 *\return color An RGB containing the color of the pixel at the location
+	 */
+	const RGB GetColor(WeightedPixel& coords);
 
 	/**
 	 * Runs all shortest path algorithms
@@ -251,18 +284,20 @@ private:
 
 	unsigned int m_Sx;
 	unsigned int m_Sy;
-	Pixel m_Start;
+	Pixel m_Start; ///A pixel containing the starting coordinates of our starting point. 
 
 
 	unsigned int m_Ex;
 	unsigned int m_Ey;
-	Pixel m_End;
+	Pixel m_End; ///A pixel containing the end coordinates of our goal point.
 
 	bool m_startFound;
 	bool m_endFound;
 
-	std::string m_name;
+	std::string m_name; ///The name of the file being run. 
 
 	inline static const std::string exampleFolder = "../../examples/";
+
+	inline static const float SQRT2 = sqrt(2.0f);
 };
 } //End of namespace Eng

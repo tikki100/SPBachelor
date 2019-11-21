@@ -6,7 +6,6 @@ using namespace cimg_library;
 #include "classMaze.h"
 
 
-
 int main(int argc, const char** argv)
 {
 	//TYPE THE EXAMPLE NAME HERE
@@ -18,13 +17,15 @@ int main(int argc, const char** argv)
 
     Eng::Maze Maze(img, filename);
 
+    Maze.Test();
+
 
     //Maze.RunBreadth(true, 40000);
-    Maze.RunBreadth();
+    /*Maze.RunBreadth();
     * img = CImg<unsigned char>(path.c_str());
     Maze.RunDijkstra();
     * img = CImg<unsigned char>(path.c_str());
-    Maze.RunAStar();
+    Maze.RunAStar();*/
 
    
 

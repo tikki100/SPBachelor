@@ -103,17 +103,19 @@ bool Maze::IsWalkable(unsigned int x, unsigned int y)
 bool Maze::IsColor(unsigned int x, unsigned int y, unsigned char r, unsigned char g, unsigned char b)
 {
 	RGB color = {r, g, b};
-	return this->IsColor(x, y, color);
+	Pixel coords = {x,y};
+	return this->IsColor(coords, color);
 }
 
-bool Maze::IsColor(Pixel coords, RGB& color)
+bool Maze::IsColor(Pixel& coords, unsigned char r, unsigned char g, unsigned char b)
 {
-	return this->IsColor(coords.x, coords.y, color);
+	RGB color = {r, g, b};
+	return this->IsColor(coords, color);
 }
 
-bool Maze::IsColor(unsigned int x, unsigned int y, RGB& color)
+bool Maze::IsColor(Pixel& coords, RGB& color)
 {
-	RGB _checkColor = this->GetColor(x,y);
+	RGB _checkColor = this->GetColor(coords);
 
 	if(_checkColor == color){
 		return true;
@@ -121,9 +123,25 @@ bool Maze::IsColor(unsigned int x, unsigned int y, RGB& color)
 	return false;
 }
 
+bool Maze::IsColor(unsigned int x, unsigned int y, RGB& color)
+{
+	Pixel coords = {x, y};
+	return this->IsColor(coords, color);
+}
+
 const RGB Maze::GetColor(unsigned int x, unsigned int y)
 {
 	return {(*this->img)(x,y, 0), (*this->img)(x,y, 1), (*this->img)(x,y, 2)};
+}
+
+const RGB Maze::GetColor(Pixel& coords)
+{
+	return this->GetColor(coords.x, coords.y);
+}
+
+const RGB Maze::GetColor(WeightedPixel& coords)
+{
+	return this->GetColor(coords.x, coords.y);
 }
 
 void Maze::ColorPixel(WeightedPixel coords, RGB color)
@@ -142,14 +160,6 @@ void Maze::ColorPixel(unsigned int x, unsigned int y, RGB color)
 	this->img->draw_point(x,y, _color);
 }
 
-int Maze::GetStartX(){ return this->m_Sx;}
-
-int Maze::GetStartY(){ return this->m_Sy;}
-
-int Maze::GetEndX(){ return this->m_Ex;}
-
-int Maze::GetEndY(){ return this->m_Ey;}
-
 void Maze::RunBreadth(bool display, unsigned int scalar, bool saveResult)
 {
 	std::cout << "Running Breadth!" << std::endl;
@@ -159,6 +169,8 @@ void Maze::RunBreadth(bool display, unsigned int scalar, bool saveResult)
 
 	queue.emplace(this->m_Start);
 	came_from[this->m_Start] = this->m_Start;
+
+	this->m_endFound = false;
 
 	
 	if(display)
@@ -254,10 +266,11 @@ void Maze::BreadthStep(std::queue<Pixel>& queue,
 
 	for(Pixel neighbor : neighbors)
 	{
-		if(neighbor.x == this->m_Ex && neighbor.y == this->m_Ey)
+		if(neighbor == this->m_End)
 		{
 			//Break the loop
 			std::cout << "Found end!" << std::endl;
+			this->m_endFound = true;
 			queue = std::queue<Pixel>();
 			came_from.emplace(neighbor, current);
 			return;
@@ -289,6 +302,8 @@ void Maze::RunDijkstra(bool display, unsigned int scalar, bool saveResult)
 
 	Pixel current = this->m_End;
 	Pixel start = this->m_Start;
+
+	this->m_endFound = false;
 
 	if(display)
 	{
@@ -376,10 +391,11 @@ void Maze::DijkstraStep(std::priority_queue<WeightedPixel>& queue,
 
 		//std::cout << "Checking: {" << neighbor.x << "," << neighbor.y << "}" << std::endl;
 
-		if(neighbor.x == this->m_Ex && neighbor.y == this->m_Ey)
+		if(neighbor == m_End)
 		{
 			//Break the loop
 			std::cout << "Found end!" << std::endl;
+			this->m_endFound = true;
 			came_from[neighbor] = current;
 			cost_so_far[neighbor] = new_weight;
 			queue = std::priority_queue<WeightedPixel>();
@@ -415,6 +431,8 @@ void Maze::RunAStar(bool display, unsigned int scalar, bool saveResult)
 
 	Pixel current = this->m_End;
 	Pixel start = this->m_Start;
+
+	this->m_endFound = false;
 
 	if(display)
 	{
@@ -499,10 +517,11 @@ void Maze::AStarStep(std::priority_queue<WeightedPixel>& queue,
 	{
 		float new_weight = cost_so_far[current] + this->GetWeightedCost(neighbor, current);;
 
-		if(neighbor.x == this->m_Ex && neighbor.y == this->m_Ey)
+		if(neighbor == this->m_End)
 		{
 			//Break the loop
 			std::cout << "Found end!" << std::endl;
+			this->m_endFound = true;
 			came_from[neighbor] = current;
 			cost_so_far[neighbor] = new_weight;
 			queue = std::priority_queue<WeightedPixel>();
@@ -562,7 +581,7 @@ float Maze::GetWeightedCost(Pixel neighbor, Pixel current)
 	if((current.x - neighbor.x == 0) || (current.y - neighbor.y == 0))
 		cost = 1.0f;
 	else
-		cost = 1.414f;
+		cost = SQRT2;
 
 	return cost;
 }
@@ -570,6 +589,14 @@ float Maze::GetWeightedCost(Pixel neighbor, Pixel current)
 
 void Maze::Test()
 {
+	Pixel test = {3, 4};
+	RGB test2 = {200, 211, 102};
+
+	std::cout << "Test1:" << test << std::endl;
+
+	std::size_t str_hash = std::hash<Pixel>{}(test);
+
+	std::cout << "Hash:" << str_hash << std::endl;
 
 }
 
@@ -682,9 +709,11 @@ void Maze::RunAll()
 {
 	//TODO
 	//Currently doesn't function as the picture is overwritten when loaded into memory.
-	this->RunBreadth();
-	this->RunDijkstra();
-	this->RunAStar();
+	//this->RunBreadth();
+	//this->RunDijkstra();
+	//this->RunAStar();
+
+	std::cout << "TODO: RunAll()" << std::endl;
 }
 
 }//End of namespace Eng
