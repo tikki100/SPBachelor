@@ -2,7 +2,6 @@
 
 #include "structPixels.h"
 #include "classEdge.h"
-#include "structNode.h"
 #include <iostream>
 #include <vector>
 #include <set>
