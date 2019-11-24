@@ -14,9 +14,10 @@ namespace Eng
 		for (int i = 0; i < maxLevel; i++)
 		{
 			std::cout << "Creating clusters for level " << i << std::endl;
-			//For each level in the map, the cluster size grows smaller.
-			//Since we divide with this, increasing the integer results in
-			//smaller clusters for each level. 
+			//For each level in the map, the cluster size grows larger,
+			//since our abstraction map grows larger. We therefore increase
+			//the clustersize by a randomly chosen integer - in this chase,
+			//we multiply by 3, for each level.
 			if(i != 0)
 				clusterSize = clusterSize * 3;
 

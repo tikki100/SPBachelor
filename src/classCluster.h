@@ -60,7 +60,7 @@ private:
 	Pixel m_minBound; ///The pixel containing the upper, left border pixel.
 	Pixel m_maxBound; ///The pixel containing the lower, right border pixel.
 
-	std::vector<Cluster> Clusters;
+	std::vector<Cluster> Clusters; ///A vector containing all clusters inside this cluster.
 
 }; //End of class Cluster
 

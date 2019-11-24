@@ -6,10 +6,10 @@ namespace Eng
 	Cluster::~Cluster(){}
 
 	bool Cluster::Contains(Cluster& other){
-		return false;
+		return false; //TODO
 	}
 
 	bool Cluster::Contains(Pixel& coords){
-		return false;
+		return false; //TODO
 	}
 } //End of namespace Eng

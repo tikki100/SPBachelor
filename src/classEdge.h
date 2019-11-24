@@ -22,6 +22,8 @@ public:
 
 	enum EdgeType { INTER, INTRA };
 
+	EdgeType type; ///The type of the edge. 
+
 	Pixel s; ///The starting pixel
 	Pixel e; ///The end pixel
 	float w; ///The weight pixel

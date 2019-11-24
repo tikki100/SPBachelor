@@ -23,8 +23,8 @@ public:
 	/**
 	 * Initilizes an HPA Maze.
 	 * \param imgFile A pointer to an image file that has been loaded in CImg.
-	 * \param maxLevel The maximum level of abstractions
-	 * \param clusterSize The size of each cluster
+	 * \param maxLevel The maximum level of abstractions.
+	 * \param clusterSize The size of each cluster in pixels. Fx would 10 create clusters of size 10 by 10.
 	 */
 	HPAMaze(CImg<unsigned char> * imgFile, unsigned int maxLevel, unsigned int clusterSize);
 
@@ -32,7 +32,9 @@ public:
 	 *Destroyes the current instance of the maze
 	 */
 	virtual ~HPAMaze();
-
+	/**
+	 * A vector containing each levels vector of clusters. The first object is level 0, the second is level 1 and so on. 
+	 */
 	std::vector<std::vector<Cluster>> GetClusters() { return this->Clusters; };
 
 private:
