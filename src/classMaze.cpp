@@ -543,6 +543,28 @@ void Maze::AStarStep(std::priority_queue<WeightedPixel>& queue,
 	}
 }
 
+void Maze::RunHPAStar(bool display, bool saveResult)
+{
+	HPAMaze hpamaze(this->img, 1, 10);
+
+	std::vector<std::vector<Cluster>> levels = hpamaze.GetClusters();
+
+	std::cout << "Generated clusters with levels" << levels.size() << " !" << std::endl;
+
+	for (std::vector<Cluster> level : levels)
+	{
+		for (Cluster cluster : level)
+		{
+			std::cout << "Cluster:" << cluster << std::endl;
+		}
+
+	}
+
+
+
+		
+}
+
 float Maze::GetHeuristicCost(Pixel goal, Pixel current)
 {
 	unsigned long long res = 0;
@@ -589,14 +611,7 @@ float Maze::GetWeightedCost(Pixel neighbor, Pixel current)
 
 void Maze::Test()
 {
-	Pixel test = {3, 4};
-	RGB test2 = {200, 211, 102};
-
-	std::cout << "Test1:" << test << std::endl;
-
-	std::size_t str_hash = std::hash<Pixel>{}(test);
-
-	std::cout << "Hash:" << str_hash << std::endl;
+	
 
 }
 

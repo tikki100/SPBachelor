@@ -2,6 +2,7 @@
 
 #include "structPixels.h"
 #include <iostream>
+#include <vector>
 
 namespace Eng
 {
@@ -59,6 +60,14 @@ private:
 	Pixel m_minBound; ///The pixel containing the upper, left border pixel.
 	Pixel m_maxBound; ///The pixel containing the lower, right border pixel.
 
+	std::vector<Cluster> Clusters;
+
 }; //End of class Cluster
+
+	inline std::ostream& operator<<(std::ostream& os, const Cluster& rhs)
+	{
+	    os << "Min: " << rhs.GetMin() << " Max: " << rhs.GetMax();
+	    return os;
+	}
 } //End of namespace Eng
 

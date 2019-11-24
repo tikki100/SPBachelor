@@ -13,6 +13,7 @@ using namespace cimg_library;
 #include <algorithm>
 
 #include "structPixels.h"
+#include "classHPAMaze.h"
 
 namespace Eng
 {
@@ -187,7 +188,6 @@ public:
 
 private:
 	CImg<unsigned char> *img;
-	CImg<unsigned char> *imgBackup;
 	/**
 	 *Verifies that the maze is valid
 	 * Verifies that theres a starting {0, 255, 0} - and an endpoint {0, 0, 255}, as well as 3 channels (RGB). 
