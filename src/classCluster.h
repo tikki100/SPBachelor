@@ -1,8 +1,11 @@
 #pragma once
 
 #include "structPixels.h"
+#include "classEdge.h"
+#include "structNode.h"
 #include <iostream>
 #include <vector>
+#include <set>
 
 namespace Eng
 {
@@ -56,6 +59,8 @@ public:
 	 */
 	bool Contains(Pixel& coords);
 
+	std::map<Pixel, std::vector<Edge>> trans; ///Pixels of transitions at the edge.  
+	
 private:
 	Pixel m_minBound; ///The pixel containing the upper, left border pixel.
 	Pixel m_maxBound; ///The pixel containing the lower, right border pixel.
@@ -69,5 +74,6 @@ private:
 	    os << "Min: " << rhs.GetMin() << " Max: " << rhs.GetMax();
 	    return os;
 	}
+
 } //End of namespace Eng
 

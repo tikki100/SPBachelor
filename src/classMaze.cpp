@@ -549,13 +549,22 @@ void Maze::RunHPAStar(bool display, bool saveResult)
 
 	std::vector<std::vector<Cluster>> levels = hpamaze.GetClusters();
 
-	std::cout << "Generated clusters with levels" << levels.size() << " !" << std::endl;
+	std::cout << "Generated clusters with levels " << levels.size() << "!" << std::endl;
 
 	for (std::vector<Cluster> level : levels)
 	{
 		for (Cluster cluster : level)
 		{
 			std::cout << "Cluster:" << cluster << std::endl;
+
+			std::cout << "Cluster has " << cluster.trans.size() << " transition pixels." << std::endl;
+			for (const auto& p : cluster.trans ) 
+			{
+		        for(Edge ed : p.second)
+		        {
+		        	std::cout << "Start: " << ed.s << " End: "<< ed.e << std::endl;
+		        }
+			}
 		}
 
 	}
@@ -611,7 +620,11 @@ float Maze::GetWeightedCost(Pixel neighbor, Pixel current)
 
 void Maze::Test()
 {
-	
+	std::map<int, std::vector<int>> test;
+
+	test[5].emplace_back(3);
+
+	std::cout << "Res is: " << test[5][0] << std::endl;
 
 }
 
