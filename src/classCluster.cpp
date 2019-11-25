@@ -6,10 +6,10 @@ namespace Eng
 	Cluster::~Cluster(){}
 
 	bool Cluster::Contains(Cluster& other){
-		if(this->m_maxBound.x >= other.GetMin().x >= this->m_minBound.x
-			&& this->m_maxBound.x >= other.GetMax().x >= this->m_maxBound.x
-			&& this->m_maxBound.y >= other.GetMin().y >= this->m_minBound.y
-			&& this->m_maxBound.y >= other.GetMax().y >= this->m_minBound.y)
+		if(this->m_maxBound.x >= other.GetMin().x && other.GetMin().x >= this->m_minBound.x
+			&& this->m_maxBound.x >= other.GetMax().x && other.GetMax().x >= this->m_maxBound.x
+			&& this->m_maxBound.y >= other.GetMin().y && other.GetMin().y >= this->m_minBound.y
+			&& this->m_maxBound.y >= other.GetMax().y && other.GetMax().y >= this->m_minBound.y)
 		{
 			return true;
 		}
@@ -17,9 +17,8 @@ namespace Eng
 	}
 
 	bool Cluster::Contains(Pixel& coords){
-
-		if(this->m_maxBound.x >= coords.x >= this->m_minBound.x 
-			&& this->m_maxBound.y >= coords.y >= this->m_minBound.y)
+		if((this->m_maxBound.x >= coords.x  && coords.x >= this->m_minBound.x) 
+			&& (this->m_maxBound.y >= coords.y && coords.y >= this->m_minBound.y))
 		{
 			return true;
 		}

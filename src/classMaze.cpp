@@ -551,7 +551,7 @@ void Maze::RunHPAStar(unsigned int clusterSize, unsigned int lvls, bool display,
 
 	std::cout << "Generated clusters with levels " << levels.size() << "!" << std::endl;
 
-	for (std::vector<Cluster> level : levels)
+	/*for (std::vector<Cluster> level : levels)
 	{
 		for (Cluster cluster : level)
 		{
@@ -567,7 +567,7 @@ void Maze::RunHPAStar(unsigned int clusterSize, unsigned int lvls, bool display,
 			}
 		}
 
-	}
+	}*/
 
 
 
@@ -620,11 +620,7 @@ float Maze::GetWeightedCost(Pixel neighbor, Pixel current)
 
 void Maze::Test()
 {
-	std::map<int, std::vector<int>> test;
-
-	test[5].emplace_back(3);
-
-	std::cout << "Res is: " << test[5][0] << std::endl;
+	
 
 }
 
@@ -659,11 +655,11 @@ std::vector<Pixel> Maze::GetNeighbors(unsigned int x, unsigned int y, bool FindE
 	
 				if(this->IsWalkable(neighbor))
 				{
-					result.push_back(neighbor);
+					result.emplace_back(neighbor);
 				}
 				else if(neighbor.x == this->m_Ex && neighbor.y == this->m_Ey)
 				{
-					result.push_back(neighbor);
+					result.emplace_back(neighbor);
 					return result; //If we have found the end, return early.
 				}
 			}
@@ -680,11 +676,11 @@ std::vector<Pixel> Maze::GetNeighbors(unsigned int x, unsigned int y, bool FindE
 			neighbor = {x + 1, y};
 			if(this->IsWalkable(neighbor))
 			{
-				result.push_back(neighbor);
+				result.emplace_back(neighbor);
 			}
 			else if(neighbor.x == this->m_Ex && neighbor.y == this->m_Ey)
 			{
-				result.push_back(neighbor);
+				result.emplace_back(neighbor);
 				return result; //If we have found the end, return early.
 			}
 		}
@@ -693,11 +689,11 @@ std::vector<Pixel> Maze::GetNeighbors(unsigned int x, unsigned int y, bool FindE
 			neighbor = {x - 1, y};
 			if(this->IsWalkable(neighbor))
 			{
-				result.push_back(neighbor);
+				result.emplace_back(neighbor);
 			}
 			else if(neighbor.x == this->m_Ex && neighbor.y == this->m_Ey)
 			{
-				result.push_back(neighbor);
+				result.emplace_back(neighbor);
 				return result; //If we have found the end, return early.
 			}
 		}
@@ -706,11 +702,11 @@ std::vector<Pixel> Maze::GetNeighbors(unsigned int x, unsigned int y, bool FindE
 			neighbor = {x, y+1};
 			if(this->IsWalkable(neighbor))
 			{
-				result.push_back(neighbor);
+				result.emplace_back(neighbor);
 			}
 			else if(neighbor.x == this->m_Ex && neighbor.y == this->m_Ey)
 			{
-				result.push_back(neighbor);
+				result.emplace_back(neighbor);
 				return result; //If we have found the end, return early.
 			}
 		}
@@ -719,11 +715,11 @@ std::vector<Pixel> Maze::GetNeighbors(unsigned int x, unsigned int y, bool FindE
 			neighbor = {x, y-1};
 			if(this->IsWalkable(neighbor))
 			{
-				result.push_back(neighbor);
+				result.emplace_back(neighbor);
 			}
 			else if(neighbor.x == this->m_Ex && neighbor.y == this->m_Ey)
 			{
-				result.push_back(neighbor);
+				result.emplace_back(neighbor);
 				return result; //If we have found the end, return early.
 			}
 		}

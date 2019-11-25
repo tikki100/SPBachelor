@@ -41,7 +41,7 @@ public:
 		this->type = t;
 	}
 
-	//std::map<Pixel, Edge> path;
+	std::map<Pixel, Pixel> path; ///Stores the path - only used for INTRA edges.
 
 
 };//End of class Cluster

@@ -7,6 +7,7 @@ using namespace cimg_library;
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <queue>
 
 #include "structPixels.h"
 #include "classCluster.h"
@@ -87,6 +88,12 @@ private:
  	 * \param x If true, x is constant. If false, y is constant.
 	 */
 	void CreateFirstInterEdges(Cluster &c1, Cluster& c2, unsigned int& lineSize, unsigned int i, bool x);
+
+	void CreateIntraEdges(Cluster& c);
+
+	std::vector<Pixel> GetPixelNeighbors(Pixel p, Cluster& c);
+
+	std::map<Pixel, Pixel> GetPath(Cluster& c, Pixel start, Pixel end);
 
 	void CreateAbstractBorderEntrances(Cluster& c1, Cluster& c2, LocCluster loc);
 

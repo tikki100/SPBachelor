@@ -19,6 +19,8 @@ int main(int argc, const char** argv)
 
     Maze.RunHPAStar(15);
 
+    //Maze.Test();
+
 
     //Maze.RunBreadth(true, 40000);
     /*Maze.RunBreadth();

@@ -85,6 +85,22 @@ namespace Eng
 
 		//Build paths inside the clusters (INTRA edges)
 
+		std::cout << "Build a total of " << resClusters.size() << " clusters." << std::endl;
+
+		for(Cluster cluster : resClusters)
+		{
+			this->CreateIntraEdges(cluster);
+			std::cout << "Cluster: " << cluster << std::endl;
+			std::cout << "Cluster has " << cluster.trans.size() << " transition pixels." << std::endl;
+			for (const auto& p : cluster.trans ) 
+			{
+		        for(Edge ed : p.second)
+		        {
+		        	std::cout << ed.type << " Start: " << ed.s << " End: "<< ed.e << std::endl;
+		        }
+			}
+		}
+
 
 		return resClusters;
 
@@ -116,6 +132,30 @@ namespace Eng
 		}
 
 		return res;
+	}
+
+	void HPAMaze::CreateIntraEdges(Cluster& c)
+	{
+		//std::cout << "Called CreateIntraEdges on " << c << std::endl;
+		for (const auto& p1 : c.trans ) 
+		{
+			for (const auto& p2 : c.trans ) 
+			{
+				//std::cout << p1.first << " & " << p2.first << std::endl;
+				if(p1.first == p2.first)
+				{
+					continue;
+				}
+				std::map<Pixel, Pixel> path = this->GetPath(c, p1.first, p2.first);
+				//std::cout << "p.size = " << path.size() << std::endl;
+	        	if(path.size() > 0)
+	        	{
+					Edge newedge;
+					newedge.Set(p1.first, p2.first, path.size(), Edge::INTRA);
+					c.trans[p1.first].emplace_back(newedge);
+	        	}
+			}
+		}
 	}
 
 	void HPAMaze::CreateFirstBorderEntrances(Cluster& c1, Cluster& c2, HPAMaze::LocCluster loc)
@@ -239,6 +279,131 @@ namespace Eng
 			}
 			lineSize = 0;
 		}
+	}
+
+	std::map<Pixel, Pixel> HPAMaze::GetPath(Cluster& c, Pixel start, Pixel end)
+	{
+		std::priority_queue<WeightedPixel> queue;
+
+		std::map< Pixel, Pixel> came_from;
+		std::map< Pixel, float> cost_so_far;
+
+		came_from[start] = start;
+		cost_so_far[start] = 0;
+
+		bool FoundEnd = false;
+
+		queue.emplace((WeightedPixel){start.x, start.y, 0});
+
+		//std::cout << "Pathfinding between " << start << " " << end << std::endl;
+
+		while(!queue.empty())
+		{
+			WeightedPixel coords = queue.top();
+			Pixel current = {coords.x, coords.y};
+			//std::cout << "Checking " << current << std::endl;
+			queue.pop();
+			std::vector<Pixel> neighbors = this->GetPixelNeighbors(current, c);
+			for(Pixel neighbor : neighbors)
+			{
+				float cost = 0.0f;
+				//The cost to move in a straight line is 1, while diagonally is sqrt(2)
+				if((current.x - neighbor.x == 0) || (current.y - neighbor.y == 0))
+					cost = 1.0f;
+				else
+					cost = std::sqrt(2);
+				float new_weight = cost_so_far[current] + cost;
+
+				if(neighbor == end)
+				{
+					//Break the loop
+					came_from[neighbor] = current;
+					cost_so_far[neighbor] = new_weight;
+					FoundEnd = true;
+					queue = std::priority_queue<WeightedPixel>();
+					break;
+				}
+				else
+				{
+					//this->ColorPixel(neighbor, grey);
+					if(cost_so_far.count(neighbor) == 0 || new_weight < cost_so_far[neighbor])
+					{
+						cost_so_far[neighbor] = new_weight;
+						unsigned long long res = 0;
+						//HACK - We are open to an overflow error.
+						//We always want a positive integer, since we use unsigned ints.
+						if(end.x >= neighbor.x)
+						{
+							  res += std::pow(end.x - neighbor.x, 2);
+						}
+						else
+						{
+							res += std::pow(neighbor.x - end.x, 2);
+						}
+
+						if(end.y >= neighbor.y)
+						{
+							res += std::pow(end.y - neighbor.y,2);
+						}
+						else
+						{
+							res += std::pow(neighbor.y - end.y,2);
+						}
+
+						float priority = new_weight + res;
+						WeightedPixel neigh_weighted = {neighbor.x, neighbor.y, priority};
+						queue.emplace(neigh_weighted);
+						came_from[neighbor] = current;
+					}
+
+				}
+			}
+		}
+
+		std::map< Pixel, Pixel> path;
+		if(FoundEnd)
+		{
+			while(end != start)
+			{
+				path[end] = came_from[end];
+				end = came_from[end];
+			}
+		}
+		/*else
+			std::cout << "Found no path" << std::endl;*/
+		return path;
+
+	}
+
+	std::vector<Pixel> HPAMaze::GetPixelNeighbors(Pixel p, Cluster& c)
+	{
+		std::vector<Pixel> result;
+		result.reserve(8);
+	
+		for(int _x = -1; _x < 2; _x++) //Check all 8 neighboring pixels.
+		{
+			if(p.x == 0 && _x == -1) //If we move too far left, skip
+				continue;
+			else if(p.x == (this->img->width()-1) && _x == 1) //If we're too  far right, skip
+				continue;
+			for(int _y = -1; _y < 2; _y++)
+			{
+				if(p.y == 0 && _y == -1)  //If we're above the picture, skip
+					continue;
+				else if(p.y == (this->img->height()-1) && _y == 1) //If we're below the picture, skip
+					continue;
+				else if(p.x == p.x + _x && p.y == p.y + _y) //If we're on the current pixel, skip
+					continue;
+				Pixel neighbor = {p.x + _x, p.y + _y};
+	
+				if(this->IsWalkable(neighbor) && c.Contains(neighbor))
+				{
+					result.push_back(neighbor);
+				}
+			}
+		}
+
+		return result;
 	}
 
 	void HPAMaze::CreateAbstractBorderEntrances(Cluster& c1, Cluster& c2, LocCluster loc)
