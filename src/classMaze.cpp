@@ -543,9 +543,9 @@ void Maze::AStarStep(std::priority_queue<WeightedPixel>& queue,
 	}
 }
 
-void Maze::RunHPAStar(bool display, bool saveResult)
+void Maze::RunHPAStar(unsigned int clusterSize, unsigned int lvls, bool display, bool saveResult)
 {
-	HPAMaze hpamaze(this->img, 1, 15);
+	HPAMaze hpamaze(this->img, lvls, clusterSize);
 
 	std::vector<std::vector<Cluster>> levels = hpamaze.GetClusters();
 

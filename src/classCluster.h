@@ -58,7 +58,7 @@ public:
 	 */
 	bool Contains(Pixel& coords);
 
-	std::map<Pixel, std::vector<Edge>> trans; ///Pixels of transitions at the edge.  
+	std::map<Pixel, std::vector<Edge>> trans; ///Contains the edges contained in a pixel within the cluster.
 	
 private:
 	Pixel m_minBound; ///The pixel containing the upper, left border pixel.

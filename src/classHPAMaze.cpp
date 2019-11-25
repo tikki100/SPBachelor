@@ -120,7 +120,7 @@ namespace Eng
 
 	void HPAMaze::CreateFirstBorderEntrances(Cluster& c1, Cluster& c2, HPAMaze::LocCluster loc)
 	{
-		unsigned int linesize = 0;
+		unsigned int lineSize = 0;
 		if(loc == LocCluster::NONE)
 			throw std::invalid_argument( "Got loc none in CreateFirstBorderEntrances" );
 		else if(loc == LocCluster::RIGHT)
@@ -130,66 +130,15 @@ namespace Eng
 				Pixel p1 = {c1.GetMax().x , i};
 				Pixel p2 = {c2.GetMin().x , i};
 
-				if(this->IsWalkable(p1) && this->IsWalkable(p2) && i != c1.GetMax().y)
-					linesize++;
+				if(this->IsWalkable(p1) && this->IsWalkable(p2))
+					lineSize++;
 				else
 				{
-					if(i == c1.GetMax().y && this->IsWalkable(p1) && this->IsWalkable(p2))
-					{
-						linesize++;
-						i++;
-					}
-					if(linesize > 0)
-					{
-						if(linesize <= 5) //The entrance is too small, so we only add 1 transition
-						{
-							std::cout << "Linesize less than 5" << std::endl;
-							unsigned int middle = i - std::floorf(linesize/2);
-							Pixel c1trans = {c1.GetMax().x, middle};
-							Pixel c2trans = {c2.GetMin().x, middle};
-
-							Edge c1edge;
-							c1edge.Set(c1trans, c2trans, 1.0f, Edge::INTER);
-							c1.trans[c1trans].emplace_back(c1edge);
-
-							Edge c2edge;
-							c2edge.Set(c2trans, c1trans, 1.0f, Edge::INTER);
-							c2.trans[c2trans].emplace_back(c2edge);
-
-						}
-						else //We add two transition points.
-						{
-							std::cout << "Linesize bigger than 5" << std::endl;
-							std::cout << "Broke on " << i << std::endl;
-							Pixel c1trans = {c1.GetMax().x, i - linesize};
-							Pixel c2trans = {c2.GetMin().x, i - linesize};
-							if(i == 0)
-								throw "i == 0 in CreateFirstBorderEntrances!";
-							Pixel c1transend = {c1.GetMax().x, i - 1 };
-							Pixel c2transend = {c2.GetMin().x, i - 1 };
-
-							Edge c1edge;
-							c1edge.Set(c1trans, c2trans, 1.0f, Edge::INTER);
-							c1.trans[c1trans].emplace_back(c1edge);
-
-							Edge c1edgeend;
-							c1edgeend.Set(c1transend, c2transend, 1.0f, Edge::INTER);
-							c1.trans[c1transend].emplace_back(c1edgeend);
-
-							Edge c2edge;
-							c2edge.Set(c2trans, c1trans, 1.0f, Edge::INTER);
-							c2.trans[c2trans].emplace_back(c2edge);
-
-							Edge c2edgeend;
-							c2edgeend.Set(c2transend, c1transend, 1.0f, Edge::INTER);
-							c2.trans[c2transend].emplace_back(c2edgeend);
-
-						}
-						linesize = 0;
-
-					}
+					this->CreateFirstInterEdges(c1, c2, lineSize, i, true);
 				}
 			}
+			//If lineSize is bigger than one, we need to create the last entrance as well.
+			this->CreateFirstInterEdges(c1, c2, lineSize, c1.GetMax().y+1, true);
 
 		}
 		else if(loc == LocCluster::LEFT)
@@ -206,69 +155,90 @@ namespace Eng
 				Pixel p1 = {i , c1.GetMax().y};
 				Pixel p2 = {i , c2.GetMin().y};
 
-				if(this->IsWalkable(p1) && this->IsWalkable(p2) && i != c1.GetMax().x)
-					linesize++;
+				if(this->IsWalkable(p1) && this->IsWalkable(p2))
+					lineSize++;
 				else
 				{
-					if(i == c1.GetMax().x && this->IsWalkable(p1) && this->IsWalkable(p2))
-					{
-						linesize++;
-						i++;
-					}
-					if(linesize > 0)
-					{
-						if(linesize <= 5) //The entrance is too small, so we only add 1 transition
-						{
-							std::cout << "Linesize less than 5" << std::endl;
-							unsigned int middle = i - std::floorf(linesize/2);
-							Pixel c1trans {middle, c1.GetMax().y};
-							Pixel c2trans {middle, c2.GetMin().y};
-
-							Edge c1edge;
-							c1edge.Set(c1trans, c2trans, 1.0f, Edge::INTER);
-							c1.trans[c1trans].emplace_back(c1edge);
-
-							Edge c2edge;
-							c2edge.Set(c2trans, c1trans, 1.0f, Edge::INTER);
-							c2.trans[c2trans].emplace_back(c2edge);
-
-						}
-						else //We add two transition points.
-						{
-							std::cout << "Linesize bigger than 5" << std::endl;
-							std::cout << "Broke on " << i << std::endl;
-							Pixel c1trans = {i - linesize, c1.GetMax().y};
-							Pixel c2trans = {i - linesize, c2.GetMin().y};
-							if(i == 0)
-								throw "i == 0 in CreateFirstBorderEntrances!";
-							Pixel c1transend = {i - 1, c1.GetMax().y};
-							Pixel c2transend = {i - 1, c2.GetMin().y};
-
-							Edge c1edge;
-							c1edge.Set(c1trans, c2trans, 1.0f, Edge::INTER);
-							c1.trans[c1trans].emplace_back(c1edge);
-
-							Edge c1edgeend;
-							c1edgeend.Set(c1transend, c2transend, 1.0f, Edge::INTER);
-							c1.trans[c1transend].emplace_back(c1edgeend);
-
-							Edge c2edge;
-							c2edge.Set(c2trans, c1trans, 1.0f, Edge::INTER);
-							c2.trans[c2trans].emplace_back(c2edge);
-
-							Edge c2edgeend;
-							c2edgeend.Set(c2transend, c1transend, 1.0f, Edge::INTER);
-							c2.trans[c2transend].emplace_back(c2edgeend);
-
-						}
-						linesize = 0;
-
-					}
+					this->CreateFirstInterEdges(c1, c2, lineSize, i, false);
 				}
+
 			}
+			//If lineSize is bigger than one, we need to create the last entrance as well.
+			this->CreateFirstInterEdges(c1, c2, lineSize, c1.GetMax().x+1, false);
 
 		}
 		
+	}
+
+	void HPAMaze::CreateFirstInterEdges(Cluster& c1, Cluster& c2, unsigned int& lineSize, unsigned int i, bool x)
+	{
+		if(lineSize > 0)
+		{
+			if(lineSize <= 5) //The entrance is too small, so we only add 1 transition
+			{
+				unsigned int middle = i - std::floorf(lineSize/2);
+				Pixel c1trans, c2trans;
+				if(x)
+				{
+					c1trans = {c1.GetMax().x, middle};
+					c2trans = {c2.GetMin().x, middle};
+				}
+				else
+				{
+					c1trans = {middle, c1.GetMax().y};
+					c2trans = {middle, c2.GetMin().y};
+				}
+
+				Edge c1edge;
+				c1edge.Set(c1trans, c2trans, 1.0f, Edge::INTER);
+				c1.trans[c1trans].emplace_back(c1edge);
+
+				Edge c2edge;
+				c2edge.Set(c2trans, c1trans, 1.0f, Edge::INTER);
+				c2.trans[c2trans].emplace_back(c2edge);
+
+			}
+			else //We add two transition points.
+			{
+				Pixel c1trans, c2trans, c1transend, c2transend;
+				if(x)
+				{
+					c1trans = {c1.GetMax().x, i - lineSize};
+					c2trans = {c2.GetMin().x, i - lineSize};
+					if(i == 0)
+						throw "i == 0 in CreateFirstBorderEntrances!";
+					c1transend = {c1.GetMax().x, i - 1 };
+					c2transend = {c2.GetMin().x, i - 1 };
+				}
+				else
+				{
+					c1trans = {i - lineSize, c1.GetMax().y};
+					c2trans = {i - lineSize, c2.GetMin().y};
+					if(i == 0)
+						throw "i == 0 in CreateFirstBorderEntrances!";
+					c1transend = {i - 1, c1.GetMax().y};
+					c2transend = {i - 1, c2.GetMin().y};
+				}
+
+				Edge c1edge;
+				c1edge.Set(c1trans, c2trans, 1.0f, Edge::INTER);
+				c1.trans[c1trans].emplace_back(c1edge);
+
+				Edge c1edgeend;
+				c1edgeend.Set(c1transend, c2transend, 1.0f, Edge::INTER);
+				c1.trans[c1transend].emplace_back(c1edgeend);
+
+				Edge c2edge;
+				c2edge.Set(c2trans, c1trans, 1.0f, Edge::INTER);
+				c2.trans[c2trans].emplace_back(c2edge);
+
+				Edge c2edgeend;
+				c2edgeend.Set(c2transend, c1transend, 1.0f, Edge::INTER);
+				c2.trans[c2transend].emplace_back(c2edgeend);
+
+			}
+			lineSize = 0;
+		}
 	}
 
 	void HPAMaze::CreateAbstractBorderEntrances(Cluster& c1, Cluster& c2, LocCluster loc)

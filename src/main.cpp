@@ -17,7 +17,7 @@ int main(int argc, const char** argv)
 
     Eng::Maze Maze(img, filename);
 
-    Maze.RunHPAStar();
+    Maze.RunHPAStar(15);
 
 
     //Maze.RunBreadth(true, 40000);

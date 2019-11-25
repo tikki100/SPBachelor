@@ -173,11 +173,15 @@ public:
 	void RunAStar(bool display = false, unsigned int scalar = 1, bool saveResult = false);
 	/**
 	 * Runs HPA* shortest path algorithm on the current maze.
+	 * \param clusterSize The size of each cluster to be created
+	 * \param The amount of abstract levels to create. Default is 1.
+	 * \param display If true, renders the picture on screen.
 	 * \param saveResult If display is true, this variable determines whether or not to save the result as a file.
 	 */
-	void RunHPAStar(bool display = false, bool saveResult = false);
+	void RunHPAStar(unsigned int clusterSize, unsigned int lvls = 1, bool display = false, bool saveResult = false);
 	/**
 	 * Runs JPS* shortest path algorithm on the current maze.
+	 * \param display If true, renders the picture on screen.
 	 * \param saveResult If display is true, this variable determines whether or not to save the result as a file.
 	 */
 	void RunJPS(bool display = false, bool saveResult = false);

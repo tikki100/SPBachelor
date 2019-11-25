@@ -20,7 +20,7 @@ namespace Eng
 class HPAMaze{
 public:
 	/**
-	 * Initilizes an HPA Maze.
+	 * Initilizes an HPA Maze which creates clusters for the given image. 
 	 * \param imgFile A pointer to an image file that has been loaded in CImg.
 	 * \param maxLevel The maximum level of abstractions.
 	 * \param clusterSize The size of each cluster in pixels. Fx would 10 create clusters of size 10 by 10.
@@ -49,7 +49,7 @@ public:
 	 * Tests whether or not two clusters are adjacent.
 	 * \param c1 The first cluster to be tested
 	 * \param c2 The second cluster to be tested
-	 * \return 0 if not adjacent, 1 if to the right, 2 if below, 3 to the left, 4 is above.
+	 * \return LocCluster::NONE if not adjacent, LocCluster::RIGHT if to the right, LocCluster::BELOW if below, LocCluster::LEFT to the left, LocCluster::ABOVE if above.
 	 */
 	LocCluster IsClusterAdjacent(Cluster& c1, Cluster& c2);
 
@@ -71,12 +71,22 @@ private:
 	std::vector<Cluster> BuildClusters(unsigned int level, unsigned int clusterSize, unsigned int width, unsigned int height);
 
 	/**
-	 * Builds entrances between two clusters
-	 * \param c1
-	 * \param c2
- 	 * \param loc
+	 * Builds entrances between two clusters and saves it to this->Clusters.
+	 * \param c1 Our first cluster that we want to build entrances from.
+	 * \param c2 Our second cluster that we are building entrances to.
+ 	 * \param loc Where c2 is located compared to c1. 
 	 */
 	void CreateFirstBorderEntrances(Cluster& c1, Cluster& c2, LocCluster loc);
+
+	/**
+	 * Builds an edge on either the x- or the y-axis depending on the input.
+	 * \param c1 Our first cluster that we want to build edges from.
+	 * \param c2 Our second cluster that we are building edges from.
+ 	 * \param lineSize The size of the entrance.
+ 	 * \param i The index at which we broke. This is used to backtrack to find the start or the middle of the entrance.
+ 	 * \param x If true, x is constant. If false, y is constant.
+	 */
+	void CreateFirstInterEdges(Cluster &c1, Cluster& c2, unsigned int& lineSize, unsigned int i, bool x);
 
 	void CreateAbstractBorderEntrances(Cluster& c1, Cluster& c2, LocCluster loc);
 

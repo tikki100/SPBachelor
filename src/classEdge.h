@@ -41,6 +41,8 @@ public:
 		this->type = t;
 	}
 
+	//std::map<Pixel, Edge> path;
+
 
 };//End of class Cluster
 
