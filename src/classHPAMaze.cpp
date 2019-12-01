@@ -146,12 +146,12 @@ namespace Eng
 				{
 					continue;
 				}
-				std::map<Pixel, Pixel> path = this->GetPath(c, p1.first, p2.first);
+				auto [path, weight] = this->GetPath(c, p1.first, p2.first);
 				//std::cout << "p.size = " << path.size() << std::endl;
 	        	if(path.size() > 0)
 	        	{
 					Edge newedge;
-					newedge.Set(p1.first, p2.first, path.size(), Edge::INTRA);
+					newedge.Set(p1.first, p2.first, weight, Edge::INTRA);
 					c.trans[p1.first].emplace_back(newedge);
 	        	}
 			}
@@ -281,7 +281,7 @@ namespace Eng
 		}
 	}
 
-	std::map<Pixel, Pixel> HPAMaze::GetPath(Cluster& c, Pixel start, Pixel end)
+	std::tuple<std::map<Pixel, Pixel>, float> HPAMaze::GetPath(Cluster& c, Pixel start, Pixel end)
 	{
 		std::priority_queue<WeightedPixel> queue;
 
@@ -312,6 +312,7 @@ namespace Eng
 					cost = 1.0f;
 				else
 					cost = std::sqrt(2);
+				
 				float new_weight = cost_so_far[current] + cost;
 
 				if(neighbor == end)
@@ -329,28 +330,8 @@ namespace Eng
 					if(cost_so_far.count(neighbor) == 0 || new_weight < cost_so_far[neighbor])
 					{
 						cost_so_far[neighbor] = new_weight;
-						unsigned long long res = 0;
-						//HACK - We are open to an overflow error.
-						//We always want a positive integer, since we use unsigned ints.
-						if(end.x >= neighbor.x)
-						{
-							  res += std::pow(end.x - neighbor.x, 2);
-						}
-						else
-						{
-							res += std::pow(neighbor.x - end.x, 2);
-						}
-
-						if(end.y >= neighbor.y)
-						{
-							res += std::pow(end.y - neighbor.y,2);
-						}
-						else
-						{
-							res += std::pow(neighbor.y - end.y,2);
-						}
-
-						float priority = new_weight + res;
+						std::cout << current << neighbor << " w: " << new_weight << " h:" << this->GetHeuristicCost(end, neighbor) << std::endl;
+						float priority = new_weight + this->GetHeuristicCost(end, neighbor);
 						WeightedPixel neigh_weighted = {neighbor.x, neighbor.y, priority};
 						queue.emplace(neigh_weighted);
 						came_from[neighbor] = current;
@@ -361,8 +342,10 @@ namespace Eng
 		}
 
 		std::map< Pixel, Pixel> path;
+		float resWeight = 0.0f;
 		if(FoundEnd)
 		{
+			resWeight = cost_so_far[end];
 			while(end != start)
 			{
 				path[end] = came_from[end];
@@ -371,8 +354,35 @@ namespace Eng
 		}
 		/*else
 			std::cout << "Found no path" << std::endl;*/
-		return path;
+		return std::tuple(path, resWeight);
 
+	}
+
+	float HPAMaze::GetHeuristicCost(Pixel goal, Pixel current)
+	{
+		unsigned long long res = 0;
+		//HACK - We are open to an overflow error.
+		//We always want a positive integer, since we use unsigned ints.
+		if(goal.x >= current.x)
+		{
+			  res += std::pow(goal.x - current.x, 2);
+		}
+		else
+		{
+			res += std::pow(current.x - goal.x, 2);
+		}
+
+		if(goal.y >= current.y)
+		{
+			res += std::pow(goal.y - current.y,2);
+		}
+		else
+		{
+			res += std::pow(current.y - goal.y,2);
+		}
+
+		//Euclidean distance
+		return std::sqrt(res);
 	}
 
 	std::vector<Pixel> HPAMaze::GetPixelNeighbors(Pixel p, Cluster& c)

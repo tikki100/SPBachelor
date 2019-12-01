@@ -302,6 +302,6 @@ private:
 
 	inline static const std::string exampleFolder = "../../examples/";
 
-	inline static const float SQRT2 = sqrt(2.0f);
+	inline static const float SQRT2 = sqrt(2.0);
 };
 } //End of namespace Eng

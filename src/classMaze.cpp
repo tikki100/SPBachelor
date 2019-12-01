@@ -93,7 +93,7 @@ bool Maze::IsWalkable(Pixel coords)
 
 bool Maze::IsWalkable(unsigned int x, unsigned int y)
 {
-	if(this->IsColor(x, y, 255, 255, 255))
+	if(this->IsColor(x, y, 255, 255, 255) || this->IsColor(x,y, 126, 126, 126))
 	{
 		return true;
 	}
@@ -515,7 +515,7 @@ void Maze::AStarStep(std::priority_queue<WeightedPixel>& queue,
 
 	for(Pixel neighbor : neighbors)
 	{
-		float new_weight = cost_so_far[current] + this->GetWeightedCost(neighbor, current);;
+		float new_weight = cost_so_far[current] + this->GetWeightedCost(neighbor, current);
 
 		if(neighbor == this->m_End)
 		{
@@ -530,7 +530,7 @@ void Maze::AStarStep(std::priority_queue<WeightedPixel>& queue,
 		else
 		{
 			this->ColorPixel(neighbor, grey);
-			if(cost_so_far.count(neighbor) == 0 || new_weight < cost_so_far[neighbor])
+			if((cost_so_far.count(neighbor) == 0) || (new_weight < cost_so_far[neighbor]))
 			{
 				cost_so_far[neighbor] = new_weight;
 				float priority = new_weight + this->GetHeuristicCost(m_End, neighbor);
@@ -604,13 +604,13 @@ float Maze::GetHeuristicCost(Pixel goal, Pixel current)
 
 float Maze::GetWeightedCost(Pixel neighbor, Pixel current)
 {
-	float cost = 0.0f;
+	float cost = 0.0;
 	if(neighbor == current)
 		return cost;
 
 	//The cost to move in a straight line is 1, while diagonally is sqrt(2)
 	if((current.x - neighbor.x == 0) || (current.y - neighbor.y == 0))
-		cost = 1.0f;
+		cost = 1.0;
 	else
 		cost = SQRT2;
 
@@ -620,6 +620,7 @@ float Maze::GetWeightedCost(Pixel neighbor, Pixel current)
 
 void Maze::Test()
 {
+
 	
 
 }

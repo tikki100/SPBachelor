@@ -93,11 +93,11 @@ private:
 
 	std::vector<Pixel> GetPixelNeighbors(Pixel p, Cluster& c);
 
-	std::map<Pixel, Pixel> GetPath(Cluster& c, Pixel start, Pixel end);
+	std::tuple<std::map<Pixel, Pixel>, float> GetPath(Cluster& c, Pixel start, Pixel end);
 
 	void CreateAbstractBorderEntrances(Cluster& c1, Cluster& c2, LocCluster loc);
 
-
+	float GetHeuristicCost(Pixel goal, Pixel current);
 
 	bool IsWalkable(Pixel p);
 
