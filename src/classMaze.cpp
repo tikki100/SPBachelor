@@ -164,11 +164,11 @@ void Maze::RunBreadth(bool display, unsigned int scalar, bool saveResult)
 {
 	std::cout << "Running Breadth!" << std::endl;
 	std::queue<Pixel> queue;
-	std::map<Pixel, Pixel> came_from;
+	std::unordered_map<Pixel, Pixel> came_from;
 
 
 	queue.emplace(this->m_Start);
-	came_from[this->m_Start] = this->m_Start;
+	came_from.insert_or_assign(this->m_Start, this->m_Start);
 
 	this->m_endFound = false;
 
@@ -250,7 +250,7 @@ void Maze::RunBreadth(bool display, unsigned int scalar, bool saveResult)
 }
 
 void Maze::BreadthStep(std::queue<Pixel>& queue, 
-	                   	std::map< Pixel, Pixel >& came_from)
+	                   	std::unordered_map< Pixel, Pixel >& came_from)
 {
 	RGB grey = {126, 126, 126};
 	RGB black = {0, 0, 0};
@@ -292,8 +292,8 @@ void Maze::RunDijkstra(bool display, unsigned int scalar, bool saveResult)
 	std::cout << "Running Djikstra!" << std::endl;
 	std::priority_queue<WeightedPixel> queue;
 
-	std::map<Pixel, Pixel> came_from;
-	std::map<Pixel, float> cost_so_far;
+	std::unordered_map<Pixel, Pixel> came_from;
+	std::unordered_map<Pixel, float> cost_so_far;
 
 	came_from[this->m_Start] = this->m_Start;
 	cost_so_far[this->m_Start] = 0.0f;
@@ -366,8 +366,8 @@ void Maze::RunDijkstra(bool display, unsigned int scalar, bool saveResult)
 }
 
 void Maze::DijkstraStep(std::priority_queue<WeightedPixel>& queue, 
-	                   		std::map< Pixel, Pixel >& came_from,
-	                   		std::map< Pixel, float>& cost_so_far)
+	                   		std::unordered_map< Pixel, Pixel >& came_from,
+	                   		std::unordered_map< Pixel, float>& cost_so_far)
 {
 	RGB grey = {126, 126, 126};
 	RGB path = {255, 0, 0};
@@ -393,8 +393,8 @@ void Maze::DijkstraStep(std::priority_queue<WeightedPixel>& queue,
 			//Break the loop
 			std::cout << "Found end!" << std::endl;
 			this->m_endFound = true;
-			came_from[neighbor] = current;
-			cost_so_far[neighbor] = new_weight;
+			came_from.insert_or_assign(neighbor, current);
+			cost_so_far.insert_or_assign(neighbor, new_weight);
 			queue = std::priority_queue<WeightedPixel>();
 			return;
 		}
@@ -403,10 +403,10 @@ void Maze::DijkstraStep(std::priority_queue<WeightedPixel>& queue,
 			this->ColorPixel(neighbor, grey);
 			if(cost_so_far.count(neighbor) == 0 || new_weight < cost_so_far[neighbor])
 			{
-				cost_so_far[neighbor] = new_weight;
+				cost_so_far.insert_or_assign(neighbor,new_weight);
 				WeightedPixel neigh_weighted = {neighbor.x, neighbor.y, new_weight};
 				queue.emplace(neigh_weighted);
-				came_from[neighbor] = current;
+				came_from.insert_or_assign(neighbor,current);
 			}
 
 		}
@@ -418,11 +418,11 @@ void Maze::RunAStar(bool display, unsigned int scalar, bool saveResult)
 	std::cout << "Running A*!" << std::endl;
 	std::priority_queue<WeightedPixel> queue;
 
-	std::map< Pixel, Pixel> came_from;
-	std::map< Pixel, float> cost_so_far;
+	std::unordered_map< Pixel, Pixel> came_from;
+	std::unordered_map< Pixel, float> cost_so_far;
 
-	came_from[this->m_Start] = this->m_Start;
-	cost_so_far[this->m_Start] = 0;
+	came_from.insert_or_assign(this->m_Start, this->m_Start);
+	cost_so_far.insert_or_assign(this->m_Start, 0);
 
 	queue.emplace((WeightedPixel){this->m_Sx, this->m_Sy, 0});
 
@@ -491,8 +491,8 @@ void Maze::RunAStar(bool display, unsigned int scalar, bool saveResult)
 }
 
 void Maze::AStarStep(std::priority_queue<WeightedPixel>& queue, 
-	                   		std::map< Pixel, Pixel >& came_from,
-	                   		std::map< Pixel, float>& cost_so_far)
+	                   		std::unordered_map< Pixel, Pixel >& came_from,
+	                   		std::unordered_map< Pixel, float>& cost_so_far)
 {
 	RGB grey = {126, 126, 126};
 	RGB path = {255, 0, 0};
@@ -516,8 +516,8 @@ void Maze::AStarStep(std::priority_queue<WeightedPixel>& queue,
 			//Break the loop
 			std::cout << "Found end!" << std::endl;
 			this->m_endFound = true;
-			came_from[neighbor] = current;
-			cost_so_far[neighbor] = new_weight;
+			came_from.insert_or_assign(neighbor, current);
+			cost_so_far.insert_or_assign(neighbor,new_weight);
 			queue = std::priority_queue<WeightedPixel>();
 			return;
 		}
@@ -526,11 +526,11 @@ void Maze::AStarStep(std::priority_queue<WeightedPixel>& queue,
 			this->ColorPixel(neighbor, grey);
 			if((cost_so_far.count(neighbor) == 0) || (new_weight < cost_so_far[neighbor]))
 			{
-				cost_so_far[neighbor] = new_weight;
+				cost_so_far.insert_or_assign(neighbor, new_weight);
 				float priority = new_weight + this->GetHeuristicCost(m_End, neighbor);
 				WeightedPixel neigh_weighted = {neighbor.x, neighbor.y, priority};
 				queue.emplace(neigh_weighted);
-				came_from[neighbor] = current;
+				came_from.insert_or_assign(neighbor,current);
 			}
 
 		}
@@ -550,13 +550,13 @@ void Maze::RunHPAStar(unsigned int clusterSize, unsigned int lvls, bool display,
 
 	//this->ColorClusterEntrances(hpamaze, pink, 1);
 
-	std::map<Pixel, Pixel> path = hpamaze.AbstractPathfind(0);
+	std::unordered_map<Pixel, Pixel> path = hpamaze.AbstractPathfind(0);
 
 	std::cout << "Path size: " << path.size() << std::endl;
 
 	this->ColorHPAPath(hpamaze, red, path);
 
-	this->SavePicture("_hpaentrances");
+	this->SavePicture("_hpa");
 
 }
 
@@ -622,7 +622,7 @@ void Maze::ColorClusterIntraPaths(HPAMaze& hpamaze, RGB& color, unsigned int lvl
 
 }
 
-void Maze::ColorHPAPath(HPAMaze& hpamaze, RGB& color, std::map<Pixel, Pixel>& path)
+void Maze::ColorHPAPath(HPAMaze& hpamaze, RGB& color, std::unordered_map<Pixel, Pixel>& path)
 {
 	for(const auto& p: path)
 	{

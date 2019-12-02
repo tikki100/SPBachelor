@@ -210,7 +210,7 @@ private:
 	 * \param came_from Takes a map of pixels, with a key using a pixel. 
 	 */
 	void BreadthStep(std::queue<Pixel>& queue,
-		             	std::map<Pixel, Pixel>& came_from);
+		             	std::unordered_map<Pixel, Pixel>& came_from);
 
 	/**
 	 * Runs a step on Dijkstra shortest path.
@@ -219,8 +219,8 @@ private:
 	 * \param cost_so_far Takes a map of floats, with a key that is a pixel
 	 */
 	void DijkstraStep(std::priority_queue<WeightedPixel>& queue, 
-	                   std::map< Pixel, Pixel >& came_from,
-	                   std::map< Pixel, float>& cost_so_far);
+	                   std::unordered_map< Pixel, Pixel >& came_from,
+	                   std::unordered_map< Pixel, float>& cost_so_far);
 	/**
 	 * Runs a step on A-star shortest path.
 	 * \param queue Takes a queue of weighted pixels that are not empty.
@@ -228,8 +228,8 @@ private:
 	 * \param cost_so_far Takes a map of floats, with a key that is a pixel
 	 */
 	void AStarStep(std::priority_queue<WeightedPixel>& queue, 
-	                   std::map< Pixel, Pixel >& came_from,
-	                   std::map< Pixel, float>& cost_so_far);
+	                   std::unordered_map< Pixel, Pixel >& came_from,
+	                   std::unordered_map< Pixel, float>& cost_so_far);
 
 	/**
 	 * Finds all walkable neighbors for a given pixel.
@@ -308,7 +308,7 @@ private:
 	 */
 	void ColorClusterIntraPaths(HPAMaze& hpamaze, RGB& color, unsigned int lvl);
 
-	void ColorHPAPath(HPAMaze& hpamaze, RGB& color, std::map<Pixel, Pixel>& path);
+	void ColorHPAPath(HPAMaze& hpamaze, RGB& color, std::unordered_map<Pixel, Pixel>& path);
 
 	/**
 	 * Saves the picture in its current state

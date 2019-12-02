@@ -1,5 +1,7 @@
 #include "classHPAMaze.h"
 
+#include "classTimer.h"
+
 namespace Eng
 { //Start of Eng
 
@@ -92,24 +94,15 @@ namespace Eng
 			}
 		}
 
+
 		//Build paths inside the clusters (INTRA edges)
 
 		std::cout << "Build a total of " << resClusters.size() << " clusters." << std::endl;
-
 		for(Cluster& cluster : resClusters)
 		{
+			//std::cout << "Creating intra for " << cluster << std::endl;
 			this->CreateIntraEdges(cluster);
-			/*std::cout << "Cluster: " << cluster << std::endl;
-			std::cout << "Cluster has " << cluster.trans.size() << " transition pixels." << std::endl;
-			for (const auto& p : cluster.trans ) 
-			{
-		        for(Edge ed : p.second)
-		        {
-		        	std::cout << ed.type << " Start: " << ed.s << " End: "<< ed.e << std::endl;
-		        }
-			}*/
 		}
-
 
 		return resClusters;
 
@@ -162,7 +155,7 @@ namespace Eng
 					Edge newedge;
 					newedge.Set(p1.first, p2.first, weight, Edge::INTRA);
 					newedge.path = path;
-					c.trans[p1.first].push_back(newedge);
+					c.trans[p1.first].emplace_back(newedge);
 	        	}
 			}
 		}
@@ -360,13 +353,13 @@ namespace Eng
 		return empty;
 	}
 
-	std::map<Pixel, Pixel> HPAMaze::AbstractPathfind(unsigned int lvl)
+	std::unordered_map<Pixel, Pixel> HPAMaze::AbstractPathfind(unsigned int lvl)
 	{
 		std::priority_queue<WeightedPixel> queue;
-		std::map< Pixel, Edge > came_from;
-		std::map< Pixel, float > cost_so_far;
+		std::unordered_map< Pixel, Edge > came_from;
+		std::unordered_map< Pixel, float > cost_so_far;
 
-		cost_so_far[this->start] = 0;
+		cost_so_far.insert_or_assign(this->start, 0);
 
 		queue.emplace((WeightedPixel){this->start.x, this->start.y, 0});
 
@@ -383,25 +376,23 @@ namespace Eng
 			}
 			queue.pop();
 			std::vector<Edge> edges = this->GetEdges(current, lvl);
-			std::cout << "C: " << current << " edges.size(): " << edges.size() << std::endl;
 			for(Edge edge : edges)
 			{
 				Pixel neighbour = edge.e;
 				float new_weight = cost_so_far[current] + edge.w;
 				if(cost_so_far.count(neighbour) == 0 || new_weight < cost_so_far[neighbour])
 				{
-					std::cout << "Found path to " << edge.e << std::endl;
-					cost_so_far[neighbour] = new_weight;
+					cost_so_far.insert_or_assign(neighbour, new_weight);
 					float priority = new_weight + this->GetHeuristicCost(this->goal, neighbour);
 					WeightedPixel neigh_weighted = {neighbour.x, neighbour.y, priority};
 					queue.emplace(neigh_weighted);
-					came_from[neighbour] = edge;
+					came_from.insert_or_assign(neighbour, edge);
 				}
 			}
 		}
 
 
-		std::map< Pixel, Pixel> path;
+		std::unordered_map< Pixel, Pixel> path;
 		if(foundEnd)
 		{
 			std::cout << "Found end! :D" << std::endl;
@@ -431,15 +422,15 @@ namespace Eng
 
 	}
 
-	std::tuple<std::map<Pixel, Pixel>, float> HPAMaze::GetPath(Cluster& c, Pixel start, Pixel end)
+	std::tuple<std::unordered_map<Pixel, Pixel>, float> HPAMaze::GetPath(Cluster& c, Pixel start, Pixel end)
 	{
 		std::priority_queue<WeightedPixel> queue;
 
-		std::map< Pixel, Pixel> came_from;
-		std::map< Pixel, float> cost_so_far;
+		std::unordered_map< Pixel, Pixel> came_from;
+		std::unordered_map< Pixel, float> cost_so_far;
 
-		came_from[start] = start;
-		cost_so_far[start] = 0;
+		came_from.insert_or_assign(start, start);
+		cost_so_far.insert_or_assign(start, 0);
 
 		bool foundEnd = false;
 
@@ -452,23 +443,22 @@ namespace Eng
 			Pixel current = {coords.x, coords.y};
 			//std::cout << "Checking " << current << std::endl;
 			queue.pop();
-			std::vector<Pixel> neighbors = this->GetPixelNeighbors(current, c);
-			for(Pixel neighbor : neighbors)
+			for(Pixel neighbor : this->GetPixelNeighbors(current, c))
 			{
 				float cost = 0.0f;
 				//The cost to move in a straight line is 1, while diagonally is sqrt(2)
 				if((current.x - neighbor.x == 0) || (current.y - neighbor.y == 0))
 					cost = 1.0f;
 				else
-					cost = std::sqrt(2);
+					cost = SQRT2;
 				
 				float new_weight = cost_so_far[current] + cost;
 
 				if(neighbor == end)
 				{
 					//Break the loop
-					came_from[neighbor] = current;
-					cost_so_far[neighbor] = new_weight;
+					came_from.insert_or_assign(neighbor, current);
+					cost_so_far.insert_or_assign(neighbor, new_weight);
 					foundEnd = true;
 					queue = std::priority_queue<WeightedPixel>();
 					break;
@@ -478,25 +468,24 @@ namespace Eng
 					//this->ColorPixel(neighbor, grey);
 					if(cost_so_far.count(neighbor) == 0 || new_weight < cost_so_far[neighbor])
 					{
-						cost_so_far[neighbor] = new_weight;
+						cost_so_far.insert_or_assign(neighbor, new_weight);
 						float priority = new_weight + this->GetHeuristicCost(end, neighbor);
 						WeightedPixel neigh_weighted = {neighbor.x, neighbor.y, priority};
 						queue.emplace(neigh_weighted);
-						came_from[neighbor] = current;
+						came_from.insert_or_assign(neighbor, current);
 					}
 
 				}
 			}
 		}
-
-		std::map< Pixel, Pixel> path;
+		std::unordered_map< Pixel, Pixel> path;
 		float resWeight = 0.0f;
 		if(foundEnd)
 		{
 			resWeight = cost_so_far[end];
 			while(end != start)
 			{
-				path[end] = came_from[end];
+				path.insert_or_assign(end, came_from[end]);
 				end = came_from[end];
 			}
 		}

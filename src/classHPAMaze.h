@@ -9,6 +9,9 @@ using namespace cimg_library;
 #include <algorithm>
 #include <queue>
 
+#include <unordered_map>
+#include <map>
+
 #include "structPixels.h"
 #include "classCluster.h"
 
@@ -56,7 +59,7 @@ public:
 
 	void Test();
 
-	std::map<Pixel, Pixel> AbstractPathfind(unsigned int lvl);
+	std::unordered_map<Pixel, Pixel> AbstractPathfind(unsigned int lvl);
 
 private:
 	std::vector<std::vector<Cluster>> Clusters; ///A vector with each level of the maze, each containing a vector of clusters in that level.
@@ -117,7 +120,7 @@ private:
 	 * \param end The second pixel from which we wish to pathfind to.
 	 * \return A tuple. The first is a map, containing the path. The second is the weight of the path. 
 	 */
-	std::tuple<std::map<Pixel, Pixel>, float> GetPath(Cluster& c, Pixel start, Pixel end);
+	std::tuple<std::unordered_map<Pixel, Pixel>, float> GetPath(Cluster& c, Pixel start, Pixel end);
 	//TODO
 	void CreateAbstractBorderEntrances(Cluster& c1, Cluster& c2, LocCluster loc);
 	/**
@@ -144,6 +147,8 @@ private:
 	Pixel start;
 
 	unsigned int depth; ///
+
+	inline static const float SQRT2 = sqrt(2.0f);
 
 }; //End of class HPAMaze
 

@@ -28,6 +28,7 @@ namespace Eng
 		{
 			return std::tie(this->x, this->y) < std::tie(rhs.x, rhs.y);
 		}
+
 	};
 
 	inline std::ostream& operator<<(std::ostream& os, const Pixel& rhs)

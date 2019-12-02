@@ -4,6 +4,8 @@
 #include <iostream>
 #include <vector>
 
+#include <unordered_map>
+
 namespace Eng
 {
 /**
@@ -41,7 +43,7 @@ public:
 		this->type = t;
 	}
 
-	std::map<Pixel, Pixel> path; ///Stores the path - only used for INTRA edges.
+	std::unordered_map<Pixel, Pixel> path; ///Stores the path - only used for INTRA edges.
 
 
 };//End of class Cluster
@@ -52,3 +54,24 @@ public:
 	    return os;
 	}
 }//End of namespace Eng
+
+
+namespace std {
+    template <>
+    struct hash<Eng::Edge>
+    {
+        size_t operator()( const Eng::Edge& k ) const
+        {
+            // Compute individual hash values for first and second
+            // http://stackoverflow.com/a/1646913/126995
+            size_t res = 17;
+            res = res * 31 + hash<Eng::Pixel>()( k.s );
+            res = res * 31 + hash<Eng::Pixel>()( k.e );
+            res = res * 31 + hash<unsigned int>()( k.w );
+            res = res * 31 + hash<Eng::Edge::EdgeType>()( k.type );
+            return res;
+        }
+    };
+
+}//End of namespace std
+
