@@ -26,7 +26,7 @@ public:
 	 * \param maxLevel The maximum level of abstractions.
 	 * \param clusterSize The size of each cluster in pixels. Fx would 10 create clusters of size 10 by 10.
 	 */
-	HPAMaze(CImg<unsigned char> * imgFile, unsigned int maxLevel, unsigned int clusterSize);
+	HPAMaze(CImg<unsigned char> * imgFile, unsigned int maxLevel, unsigned int clusterSize, Pixel start, Pixel end);
 
 	/**
 	 *Destroyes the current instance of the maze
@@ -55,6 +55,8 @@ public:
 	LocCluster IsClusterAdjacent(Cluster& c1, Cluster& c2);
 
 	void Test();
+
+	std::map<Pixel, Pixel> AbstractPathfind(unsigned int lvl);
 
 private:
 	std::vector<std::vector<Cluster>> Clusters; ///A vector with each level of the maze, each containing a vector of clusters in that level.
@@ -88,22 +90,58 @@ private:
  	 * \param x If true, x is constant. If false, y is constant.
 	 */
 	void CreateFirstInterEdges(Cluster &c1, Cluster& c2, unsigned int& lineSize, unsigned int i, bool x);
-
+	/**
+	 * Builds an edge between the inter edges, if a path exists.
+	 * \param c The cluster that we want to build the edges on. 
+	 */
 	void CreateIntraEdges(Cluster& c);
 
-	std::vector<Pixel> GetPixelNeighbors(Pixel p, Cluster& c);
+	void InsertPixelIntoLevel(Pixel p, unsigned int lvl);
 
+	std::vector<Edge> GetInterEdges(Pixel p, unsigned int lvl);
+
+	std::vector<Edge> GetEdges(Pixel p, unsigned int lvl);
+
+	/**
+	 * Gets all possible neighbors to a pixel in a specific cluster.
+	 * \param p The pixel that we are examining
+	 * \param c The cluster in which the pixel is located
+	 * \return A vector containing the pixels of all neighbors.
+	 */
+	std::vector<Pixel> GetPixelNeighbors(Pixel p, Cluster& c); 
+
+	/**
+	 * Gets the path between two pixels inside a cluster, if such a path exists. 
+	 * \param c The cluster in which the pixels are contained.
+	 * \param start The first pixel from which we are starting
+	 * \param end The second pixel from which we wish to pathfind to.
+	 * \return A tuple. The first is a map, containing the path. The second is the weight of the path. 
+	 */
 	std::tuple<std::map<Pixel, Pixel>, float> GetPath(Cluster& c, Pixel start, Pixel end);
-
+	//TODO
 	void CreateAbstractBorderEntrances(Cluster& c1, Cluster& c2, LocCluster loc);
-
+	/**
+	 * Gets the heuristic cost between a goal pixel and our current pixel.
+	 * \param goal The pixel which is our goal.
+	 * \param current The pixel from which we are examining.
+	 * \return A float in which the euclidean distance is contained.
+	 */
 	float GetHeuristicCost(Pixel goal, Pixel current);
-
+	/**
+	 * Tests if we can walk on a pixel.
+	 * \param p The pixel which we want to test.
+	 * \return True, if we can walk on the pixel. False otherwise.
+	 */
 	bool IsWalkable(Pixel p);
-
+	/**
+	 * Tests the color of the pixel
+	 * \param p The pixel which we want to test.
+	 * \return An RGB containing the color of the pixel. 
+	 */
 	const RGB GetColor(Pixel p);
 
-
+	Pixel goal;
+	Pixel start;
 
 	unsigned int depth; ///
 

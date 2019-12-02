@@ -8,22 +8,18 @@ using namespace cimg_library;
 int main(int argc, const char** argv)
 {
 	//TYPE THE EXAMPLE NAME HERE
-    std::string filename = "test03";
+    std::string filename = "test11";
 
     std::string path = "../../examples/" + filename + ".png";
     std::cout << "Loading example from path " << path << std::endl;
     CImg<unsigned char> * img  = new CImg<unsigned char>(path.c_str());
 
     Eng::Maze Maze(img, filename);
-
-    std::map<Eng::Pixel, Eng::Pixel> testmap;
-
-    std::cout << "Sizeof map: " << sizeof(testmap) << "\n Map.size: " << testmap.size() << std::endl;
-    //Maze.RunHPAStar(15);
+    Maze.RunHPAStar(15);
 
     //Maze.Test();
 
-    Maze.RunAStar();
+    //Maze.RunAStar();
 
 
     //Maze.RunBreadth(true, 40000);

@@ -269,12 +269,20 @@ private:
 	void ColorPixel(unsigned int x, unsigned int y, RGB color);
 
 	/**
-	 * Gets the heuristic value between two pixels
+	 * Gets the heuristic value between two pixels (Euclidean distance)
 	 *\param goal The end pixel
 	 *\param current The current pixel being examined
-	 *\returns An unsigned int with a value representing the heuristic cost. 
+	 *\returns A float with a value representing the heuristic cost. 
 	 */
 	float GetHeuristicCost(Pixel goal, Pixel current);
+
+	/**
+	 * Gets the heuristic value between two pixels (Manhatten Distance)
+	 *\param goal The end pixel
+	 *\param current The current pixel being examined
+	 *\returns A float with a value representing the heuristic cost. 
+	 */
+	float GetHeuristicManhattenCost(Pixel goal, Pixel current);
 
 	/**
 	 * Gets the weighted movement cost between two pixels
@@ -284,6 +292,29 @@ private:
 	 *\returns A float with a value representing the weighted cost. 
 	 */
 	float GetWeightedCost(Pixel neighbor, Pixel current);
+	/**
+	 * Colors all entrances for the clusters in a given maze at the given lvl
+	 *\param hpamaze An instantiated version of HPAMaze
+	 *\param color The color that the entrances should be
+	 *\param lvl The level at which the clusters are.
+	 */
+	void ColorClusterEntrances(HPAMaze& hpamaze, RGB& color, unsigned int lvl);
+
+	/**
+	 * Colors the intra paths for the entrances in a given maze at the given lvl
+	 *\param hpamaze An instantiated version of HPAMaze
+	 *\param color The color that the entrances should be
+	 *\param lvl The level at which the clusters are.
+	 */
+	void ColorClusterIntraPaths(HPAMaze& hpamaze, RGB& color, unsigned int lvl);
+
+	void ColorHPAPath(HPAMaze& hpamaze, RGB& color, std::map<Pixel, Pixel>& path);
+
+	/**
+	 * Saves the picture in its current state
+	 *\param filename The extension which to add to the original file
+	 */
+	void SavePicture(std::string filename);
 
 
 	unsigned int m_Sx;
@@ -302,6 +333,6 @@ private:
 
 	inline static const std::string exampleFolder = "../../examples/";
 
-	inline static const float SQRT2 = sqrt(2.0);
+	inline static const float SQRT2 = sqrt(2.0f);
 };
 } //End of namespace Eng

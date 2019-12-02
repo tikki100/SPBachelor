@@ -344,8 +344,7 @@ void Maze::RunDijkstra(bool display, unsigned int scalar, bool saveResult)
 
 	    if(saveResult)
 	    {
-	    	std::string saveName = this->exampleFolder + this->m_name + "_dijkstra.png";
-	    	this->img->save(saveName.c_str());
+	    	this->SavePicture("_dijkstra");
 	    }
 	}
 	else
@@ -361,9 +360,7 @@ void Maze::RunDijkstra(bool display, unsigned int scalar, bool saveResult)
 		}
 		this->ColorPixel(start, {255, 0, 0});
 
-		std::string saveName = this->exampleFolder + this->m_name + "_dijkstra.png";
-
-		this->img->save(saveName.c_str());
+		this->SavePicture("_dijkstra");
 
 	}
 }
@@ -473,8 +470,7 @@ void Maze::RunAStar(bool display, unsigned int scalar, bool saveResult)
 
 	    if(saveResult)
 	    {
-	    	std::string saveName = this->exampleFolder + this->m_name + "_astar.png";
-	    	this->img->save(saveName.c_str());
+	    	this->SavePicture("_astar");
 	    }
 	}
 	else
@@ -490,9 +486,7 @@ void Maze::RunAStar(bool display, unsigned int scalar, bool saveResult)
 		}
 		this->ColorPixel(start, {255, 0, 0});
 
-		std::string saveName = this->exampleFolder + this->m_name + "_astar.png";
-
-		this->img->save(saveName.c_str());
+		this->SavePicture("_astar");
 	}
 }
 
@@ -545,39 +539,109 @@ void Maze::AStarStep(std::priority_queue<WeightedPixel>& queue,
 
 void Maze::RunHPAStar(unsigned int clusterSize, unsigned int lvls, bool display, bool saveResult)
 {
-	HPAMaze hpamaze(this->img, lvls, clusterSize);
+	HPAMaze hpamaze(this->img, lvls, clusterSize, this->m_Start, this->m_End);
 
 	std::vector<std::vector<Cluster>> levels = hpamaze.GetClusters();
 
-	std::cout << "Generated clusters with levels " << levels.size() << "!" << std::endl;
+	RGB pink = {255, 0, 255};
+	RGB red = {255, 0, 0};
 
-	/*for (std::vector<Cluster> level : levels)
+	//this->ColorClusterIntraPaths(hpamaze, red, 1);
+
+	//this->ColorClusterEntrances(hpamaze, pink, 1);
+
+	std::map<Pixel, Pixel> path = hpamaze.AbstractPathfind(0);
+
+	std::cout << "Path size: " << path.size() << std::endl;
+
+	this->ColorHPAPath(hpamaze, red, path);
+
+	this->SavePicture("_hpaentrances");
+
+}
+
+void Maze::ColorClusterEntrances(HPAMaze& hpamaze, RGB& color, unsigned int lvl)
+{
+	std::vector<std::vector<Cluster>> levels = hpamaze.GetClusters();
+	if(lvl > levels.size() || lvl == 0)
+		throw std::invalid_argument( "Attempted to do ColorClusterEntrances on a lvl that does not exist" );
+
+	std::cout << "Coloring clusters in level " << lvl << std::endl;
+	for (std::vector<Cluster> level : levels)
 	{
 		for (Cluster cluster : level)
 		{
-			std::cout << "Cluster:" << cluster << std::endl;
-
-			std::cout << "Cluster has " << cluster.trans.size() << " transition pixels." << std::endl;
 			for (const auto& p : cluster.trans ) 
 			{
 		        for(Edge ed : p.second)
 		        {
-		        	std::cout << "Start: " << ed.s << " End: "<< ed.e << std::endl;
+		        	this->ColorPixel(ed.s, color);
+		        	this->ColorPixel(ed.e, color);
 		        }
 			}
 		}
 
-	}*/
+	}
 
-
-
-		
 }
+
+void Maze::ColorClusterIntraPaths(HPAMaze& hpamaze, RGB& color, unsigned int lvl)
+{
+	std::vector<std::vector<Cluster>> levels = hpamaze.GetClusters();
+	if(lvl > levels.size() || lvl == 0)
+		throw std::invalid_argument( "Attempted to do ColorClusterEntrances on a lvl that does not exist" );
+
+	std::cout << "Coloring intra paths in level " << lvl << std::endl;
+
+	unsigned int currentLvl = 1;
+	for (std::vector<Cluster> level : levels)
+	{
+		if(currentLvl != lvl)
+			continue;
+		currentLvl++;
+		for (Cluster cluster : level)
+		{			
+			for (auto const& p : cluster.trans ) 
+			{
+		        for(Edge ed : p.second)
+		        {
+		        	if(ed.type == Edge::EdgeType::INTRA)
+		        	{
+		        		Pixel current = ed.e;
+		        		while(current != ed.s)
+		        		{
+		        			this->ColorPixel(current, color);
+							current = ed.path[current];
+		        		}
+		        	}
+		        }
+			}
+		}
+
+	}
+
+}
+
+void Maze::ColorHPAPath(HPAMaze& hpamaze, RGB& color, std::map<Pixel, Pixel>& path)
+{
+	for(const auto& p: path)
+	{
+		this->ColorPixel(p.first, color);
+		this->ColorPixel(p.second, color);
+
+	}
+
+	//this->ColorPixel(this->m_End, color);
+}
+
 
 float Maze::GetHeuristicCost(Pixel goal, Pixel current)
 {
+	//Euclidean Distance
+	// sqrt(|x2 - x1|^2 + |y2 - y1|^2)
+
 	unsigned long long res = 0;
-	//HACK - We are open to an overflow error.
+	//OBS - We are open to an overflow error.
 	//We always want a positive integer, since we use unsigned ints.
 	if(goal.x >= current.x)
 	{
@@ -597,20 +661,47 @@ float Maze::GetHeuristicCost(Pixel goal, Pixel current)
 		res += std::pow(current.y - goal.y,2);
 	}
 
+
 	//Euclidean distance
 	return std::sqrt(res);
 
 }
 
+float Maze::GetHeuristicManhattenCost(Pixel goal, Pixel current)
+{
+	// Manhatten distance
+	// |x2 - x1| + |y2 - y1|
+	float res = 0; 
+	if(goal.x >= current.x)
+	{
+		  res += goal.x - current.x;
+	}
+	else
+	{
+		res += current.x - goal.x;
+	}
+
+	if(goal.y >= current.y)
+	{
+		res += goal.y - current.y;
+	}
+	else
+	{
+		res += current.y - goal.y;
+	}
+	return res;
+
+}
+
 float Maze::GetWeightedCost(Pixel neighbor, Pixel current)
 {
-	float cost = 0.0;
+	float cost = 0.0f;
 	if(neighbor == current)
 		return cost;
 
 	//The cost to move in a straight line is 1, while diagonally is sqrt(2)
 	if((current.x - neighbor.x == 0) || (current.y - neighbor.y == 0))
-		cost = 1.0;
+		cost = 1.0f;
 	else
 		cost = SQRT2;
 
@@ -728,6 +819,12 @@ std::vector<Pixel> Maze::GetNeighbors(unsigned int x, unsigned int y, bool FindE
 
 	return result;
 
+}
+
+void Maze::SavePicture(std::string filename)
+{
+	std::string saveName = this->exampleFolder + this->m_name + filename + ".png";
+	this->img->save(saveName.c_str());
 }
 
 void Maze::RunAll()
