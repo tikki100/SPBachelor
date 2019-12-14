@@ -264,7 +264,7 @@ void Maze::BreadthStep(std::queue<Pixel>& queue,
 
 	std::vector<Pixel> neighbors = this->GetNeighbors(current);
 
-	for(Pixel neighbor : neighbors)
+	for(Pixel& neighbor : neighbors)
 	{
 		if(neighbor == this->m_End)
 		{
@@ -382,7 +382,7 @@ void Maze::DijkstraStep(std::priority_queue<WeightedPixel>& queue,
 
 	std::vector<Pixel> neighbors = this->GetNeighbors(current);
 
-	for(Pixel neighbor : neighbors)
+	for(Pixel& neighbor : neighbors)
 	{
 		float new_weight = cost_so_far[current] + this->GetWeightedCost(neighbor, current);
 
@@ -507,7 +507,7 @@ void Maze::AStarStep(std::priority_queue<WeightedPixel>& queue,
 
 	std::vector<Pixel> neighbors = this->GetNeighbors(current);
 
-	for(Pixel neighbor : neighbors)
+	for(Pixel& neighbor : neighbors)
 	{
 		float new_weight = cost_so_far[current] + this->GetWeightedCost(neighbor, current);
 
@@ -552,12 +552,269 @@ void Maze::RunHPAStar(unsigned int clusterSize, unsigned int lvls, bool display,
 
 	std::unordered_map<Pixel, Pixel> path = hpamaze.AbstractPathfind(0);
 
-	std::cout << "Path size: " << path.size() << std::endl;
+	std::cout << "Getting color:" << (this->GetColor(30, 30)) << std::endl;
+
+	//std::cout << "Path size: " << path.size() << std::endl;
 
 	this->ColorHPAPath(hpamaze, red, path);
 
 	this->SavePicture("_hpa");
 
+}
+
+void Maze::RunJPS(bool display, bool saveResult)
+{
+	std::cout << "Running JPS!" << std::endl;
+
+	std::priority_queue<WeightedPixel> queue;
+
+	std::unordered_map< Pixel, Pixel> came_from;
+	//std::unordered_map< Pixel, float> cost_so_far;
+
+	came_from.insert_or_assign(this->m_Start, this->m_Start);
+	//cost_so_far.insert_or_assign(this->m_Start, 0);
+
+	queue.emplace((WeightedPixel){this->m_Sx, this->m_Sy, 0});
+
+	Pixel current = this->m_End;
+	Pixel start = this->m_Start;
+
+	this->m_endFound = false;
+
+	while(!queue.empty() && this->m_endFound == false)
+	{
+		this->JPSStep(queue, came_from);
+	}
+
+	this->SavePicture("_JPS");
+
+}
+
+void Maze::JPSStep(std::priority_queue<WeightedPixel>& queue, 
+	                   		std::unordered_map< Pixel, Pixel >& came_from) {
+	                   		//std::unordered_map< Pixel, float>& cost_so_far){
+
+	RGB grey = {126, 126, 126};
+	RGB path = {255, 0, 0};
+
+	if(queue.empty())
+		throw std::invalid_argument( "Attempted to do JPS on an empty queue." );
+
+	WeightedPixel coords = queue.top();
+	Pixel current = {coords.x, coords.y};
+
+	this->ColorPixel(current, grey);
+
+	queue.pop();
+
+	std::cout << "\nStepping on " << current << std::endl; 
+	std::vector<Pixel> neighbors = this->JPSPrunedNeighbors(current, came_from);
+	
+	for(Pixel neighbor : neighbors)
+	{
+		std::cout << "Current: " << current << " Neighbor: " << neighbor;
+		int dx = neighbor.x - current.x;
+		int dy = neighbor.y - current.y;
+
+		std::cout << " dx: " << dx << " dy: " << dy << std::endl;
+		
+		auto [n, success] = this->JPSJump(neighbor, dx, dy, came_from);
+		if(success)
+		{
+			std::cout << "Success! Adding " << n << " to queue!" << std::endl;
+			WeightedPixel neigh_weighted = {n.x, n.y, this->GetHeuristicCost(m_End, n)};
+			queue.emplace(neigh_weighted);
+		}
+	}
+}
+
+std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current, int dx, int dy, std::unordered_map< Pixel, Pixel >& came_from)
+{
+
+	Pixel New = {current.x + dx, current.y + dy};
+	std::cout << "Running jump on " << current << " with dx: " << dx << " dy: " << dy << std::endl;
+
+	came_from.insert_or_assign(current, current);
+
+
+	if(current == this->m_End)
+	{
+		std::cout << "Found end" << std::endl;
+		this->m_endFound = true;
+		return std::tuple(current, true);
+	}
+
+	if(!this->IsWalkable(current))
+	{
+		std::cout << "Pixel is not walkable" << std::endl;
+		return std::tuple(current, false);
+	}
+
+	//Check for forced neighbours.
+	if(dx != 0 && dy != 0) //Checking Diagonally
+	{
+		std::cout << "Diagonal" << std::endl;
+		if( (!(this->IsWalkable(current.x - dx, current.y)) && this->IsWalkable(current.x - dx, current.y + dy))
+		    || (!(this->IsWalkable(current.x, current.y - dy)) && this->IsWalkable(current.x + dx, current.y - dy)))
+		{
+			std::cout << "Added forced neighbor" << std::endl;
+			return std::tuple(current, true);
+		}
+
+		auto [ __ , yt ] = this->JPSJump(current, 0, dy, came_from);
+		auto [ _ , xt ] = this->JPSJump(current, dx, 0, came_from);
+
+		if(xt || yt)
+		{
+			came_from[current] = {current.x - dx, current.y - dy};
+			std::cout << "Added " << current << " due to jump either xt or yt" << std::endl;
+			return std::tuple(current, true);
+		}
+
+
+
+	}
+	else if(dx != 0) //Horizontally
+	{
+		std::cout << "Horizontally" << std::endl;
+		if( (current.y != 0 && !(this->IsWalkable(current.x, current.y - 1)) && this->IsWalkable(current.x + dx, current.y - 1))
+			|| (current.y != this->img->height()-1 && !(this->IsWalkable(current.x, current.y + 1)) && this->IsWalkable(current.x + dx, current.y + 1)) )
+		{
+			std::cout << "Added forced neighbor" << std::endl;
+			came_from[current] = {current.x - dx, current.y - dy};
+			return std::tuple(current, true);
+		}
+
+	}
+	else //Vertically
+	{
+		std::cout << "Vertically" << std::endl;
+		if( (current.x != 0 && !this->IsWalkable(current.x - 1, current.y) && this->IsWalkable(current.x - 1, current.y + dy))
+			|| (current.x != this->img->width()-1 && !this->IsWalkable(current.x + 1, current.y) && this->IsWalkable(current.x + 1, current.y + dy)))
+		{
+			std::cout << "Added vertical forced neighbor" << std::endl;
+			came_from[current] = {current.x - dx, current.y - dy};
+			return std::tuple(current, true);
+		}
+
+	}
+	std::cout << "Recursion" << std::endl;
+
+	if(0 <= New.x && New.x < this->img->width()
+		&& 0 <= New.y && New.y < this->img->height())
+		return this->JPSJump(New, dx, dy, came_from);
+	else
+		return std::tuple(current, false);
+
+}
+
+
+std::vector<Pixel> Maze::JPSPrunedNeighbors(Pixel current, 
+											std::unordered_map< Pixel, Pixel >& came_from){
+	if(came_from[current] == current) //If we're at the start, return all directions. 
+		return this->GetNeighbors(current);
+
+	std::vector<Pixel> res;
+
+	res.reserve(3);
+
+	int dx = current.x - came_from[current].x;
+    int dy = current.y - came_from[current].y;
+
+    std::cout << "Getting pruned for " << current << " dx: " << dx << " dy: " << dy << std::endl;
+
+
+    if(dy == 0) //We're moving horizontally.
+    {
+    	if((dx == -1 && current.x != 0)
+    		|| (current.x+dx != this->img->width()) )
+    	{
+    		Pixel Next = {current.x + dx, current.y + dy};
+    		if(this->IsWalkable(Next) || Next == this->m_End)
+    		{
+    			res.emplace_back(Next);
+    			if(current.y != 0 && !this->IsWalkable(current.x, current.y - 1))
+    			{
+    				Pixel Forced = {current.x + dx, current.y - 1};
+    				res.emplace_back(Forced);
+    			}
+    			else if(current.y != this->img->height() && !this->IsWalkable(current.x, current.y + 1))
+    			{
+    				Pixel Forced = {current.x + dx, current.y + 1};
+    				res.emplace_back(Forced);
+    			}
+    		}
+    	}
+
+    }
+    else if(dx == 0) //We're moving vertically.
+    {
+    	if((dy == -1 && current.y != 0)
+    		|| (current.y + dy != this->img->height()) )
+    	{
+    		Pixel Next = {current.x, current.y + dy};
+    		if(this->IsWalkable(Next) || Next == this->m_End)
+    		{
+    			res.emplace_back(Next);
+    			if(current.x != 0 && !this->IsWalkable(current.x - 1, current.y))
+    			{
+    				Pixel Forced = {current.x-1, current.y + dy};
+    				res.emplace_back(Forced);
+    			}
+    			else if (current.x != this->img->width()-1 && !this->IsWalkable(current.x + 1, current.y))
+    			{
+    				Pixel Forced = {current.x+1, current.y + dy};
+    				res.emplace_back(Forced);
+    			}
+    		}
+    	}
+    }
+    else //We're moving diagonally
+    {
+    	bool t1, t2 = false; 
+    	if((dy == -1 && current.y != 0)
+    		|| (current.y + dy != this->img->height()))
+    	{
+    		t2 = true;
+    		Pixel Next = {current.x, current.y + dy};
+    		if(this->IsWalkable(Next) || Next == this->m_End)
+    		{
+    			res.emplace_back(Next);
+    			if((current.x != 0 && dx == 1)
+    				&& (current.x != this->img->width()-1 && dx == -1)
+    				&& !this->IsWalkable(current.x - dx, current.y))
+    			{
+    				Pixel Forced = {current.x - dx, current.y + dy};
+    			}
+    		}
+    	}
+    	if((dx == -1 && current.x != 0)
+    		|| (current.x + dx != this->img->width()) )
+    	{
+    		t1 = true;
+    		Pixel Next = {current.x + dx, current.y};
+    		if(this->IsWalkable(Next))
+    		{
+    			res.emplace_back(Next);
+    			if((current.y != 0 && dy == 1)
+    				&& (current.y != this->img->height()-1 && dy == -1)
+    				&& !this->IsWalkable(current.x, current.y - dy))
+    			{
+    				Pixel Forced = {current.x + dx, current.y - dy};
+    			}
+    		}
+    	}
+    	if(t1 && t2)
+    	{
+    		Pixel Next = {current.x + dx, current.y + dy};
+    		if(this->IsWalkable(Next))
+    			res.emplace_back(Next);
+    	}
+
+    }
+
+    std::cout << "Res: " << res.size() << std::endl;
+	return res;
 }
 
 void Maze::ColorClusterEntrances(HPAMaze& hpamaze, RGB& color, unsigned int lvl)
@@ -567,16 +824,19 @@ void Maze::ColorClusterEntrances(HPAMaze& hpamaze, RGB& color, unsigned int lvl)
 		throw std::invalid_argument( "Attempted to do ColorClusterEntrances on a lvl that does not exist" );
 
 	std::cout << "Coloring clusters in level " << lvl << std::endl;
-	for (std::vector<Cluster> level : levels)
+	for (const std::vector<Cluster>& level : levels)
 	{
-		for (Cluster cluster : level)
+		for (const Cluster& cluster : level)
 		{
 			for (const auto& p : cluster.trans ) 
 			{
-		        for(Edge ed : p.second)
+		        for(const Edge& ed : p.second)
 		        {
-		        	this->ColorPixel(ed.s, color);
-		        	this->ColorPixel(ed.e, color);
+		        	if(ed.type == Edge::EdgeType::INTER)
+		        	{
+			        	this->ColorPixel(ed.s, color);
+			        	this->ColorPixel(ed.e, color);
+			        }
 		        }
 			}
 		}

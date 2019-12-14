@@ -101,9 +101,9 @@ private:
 
 	void InsertPixelIntoLevel(Pixel p, unsigned int lvl);
 
-	std::vector<Edge> GetInterEdges(Pixel p, unsigned int lvl);
+	std::vector<Edge> GetInterEdges(Pixel& p, unsigned int lvl);
 
-	std::vector<Edge> GetEdges(Pixel p, unsigned int lvl);
+	std::vector<Edge> GetEdges(Pixel& p, unsigned int lvl);
 
 	/**
 	 * Gets all possible neighbors to a pixel in a specific cluster.

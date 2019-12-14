@@ -22,6 +22,7 @@ namespace Eng
   * An abstract class which can use different algorithms on pictures. 
   */	
 class Maze{
+
 public:
 	/**
 	 * Initilizes a maze, based on an image file.
@@ -232,12 +233,34 @@ private:
 	                   std::unordered_map< Pixel, float>& cost_so_far);
 
 	/**
+	 * Runs a step on JPS shortest parth
+	 * \param queue Takes a queue of weighted pixels that are not empty.
+	 * \param came_from Takes a map of pixels with a key that is a pixel.
+	 * \param cost_so_far Takes a map of floats, with a key that is a pixel
+	 */
+	void JPSStep(std::priority_queue<WeightedPixel>& queue, 
+	                   std::unordered_map< Pixel, Pixel >& came_from);
+	                   //std::unordered_map< Pixel, float>& cost_so_far);
+
+	/**
 	 * Finds all walkable neighbors for a given pixel.
 	 * \param coords A pixel which we want the neighbors from.
 	 * \param FindEightNeighbors A bool which determines whether to return 8 (true) neighbors or 4 (false) neighbors.
 	 * \returns A vector of maximum length 8 containing the neighboring pixels. Can be empty.  
 	 */
 	std::vector<Pixel> GetNeighbors(Pixel& coords, bool FindEightNeighbors = true);
+
+	/**
+	 * Prunes a list of walkable neighbors in a given direction.
+	 * \param current The pixel which neighbors we want.
+	 * \param came_from The map which contains all came_from values.
+	 * \warning Can return unwalkable neighbours!
+	 * \returns A vector of maximum length 8 containing the neighboring pixels.
+	 */
+	std::vector<Pixel> JPSPrunedNeighbors(Pixel current, std::unordered_map< Pixel, Pixel >& came_from);
+
+	std::tuple<Pixel, bool> JPSJump(Pixel& current, int dx, int dy, std::unordered_map< Pixel, Pixel >& came_from);
+
 	/**
 	 * Finds all walkable neighbors for a given pixel.
 	 * \param x The x-coordinate of the pixel

@@ -1,3 +1,7 @@
+//A lot of this code was inspired from the implementation by hugoscurti
+//on his project of implementing HPA* in Unity.
+//https://github.com/hugoscurti/hierarchical-pathfinding
+
 #include "classHPAMaze.h"
 
 #include "classTimer.h"
@@ -98,9 +102,9 @@ namespace Eng
 		//Build paths inside the clusters (INTRA edges)
 
 		std::cout << "Build a total of " << resClusters.size() << " clusters." << std::endl;
+
 		for(Cluster& cluster : resClusters)
 		{
-			//std::cout << "Creating intra for " << cluster << std::endl;
 			this->CreateIntraEdges(cluster);
 		}
 
@@ -219,7 +223,7 @@ namespace Eng
 		{
 			if(lineSize <= 5) //The entrance is too small, so we only add 1 transition
 			{
-				unsigned int middle = i - std::floorf(lineSize/2);
+				unsigned int middle = i - (std::floorf(lineSize/2)+1);
 				Pixel c1trans, c2trans;
 				if(x)
 				{
@@ -319,7 +323,7 @@ namespace Eng
 		}
 	}
 
-	std::vector<Edge> HPAMaze::GetInterEdges(Pixel p, unsigned int lvl)
+	std::vector<Edge> HPAMaze::GetInterEdges(Pixel& p, unsigned int lvl)
 	{
 		std::vector<Edge> res;
 
@@ -327,7 +331,7 @@ namespace Eng
 		{
 			for (const auto& p : cluster.trans ) 
 			{
-		        for(Edge ed : p.second)
+		        for(const Edge& ed : p.second)
 		        {
 		        	if(ed.type == Edge::EdgeType::INTER)
 		        	{
@@ -340,7 +344,7 @@ namespace Eng
 		return res;
 	}
 
-	std::vector<Edge> HPAMaze::GetEdges(Pixel p, unsigned int lvl)
+	std::vector<Edge> HPAMaze::GetEdges(Pixel& p, unsigned int lvl)
 	{
 		std::vector<Edge> empty;
 
@@ -376,7 +380,7 @@ namespace Eng
 			}
 			queue.pop();
 			std::vector<Edge> edges = this->GetEdges(current, lvl);
-			for(Edge edge : edges)
+			for(Edge& edge : edges)
 			{
 				Pixel neighbour = edge.e;
 				float new_weight = cost_so_far[current] + edge.w;
@@ -441,9 +445,10 @@ namespace Eng
 		{
 			WeightedPixel coords = queue.top();
 			Pixel current = {coords.x, coords.y};
+			
 			//std::cout << "Checking " << current << std::endl;
 			queue.pop();
-			for(Pixel neighbor : this->GetPixelNeighbors(current, c))
+			for(Pixel& neighbor : this->GetPixelNeighbors(current, c))
 			{
 				float cost = 0.0f;
 				//The cost to move in a straight line is 1, while diagonally is sqrt(2)
@@ -555,6 +560,7 @@ namespace Eng
 
 	void HPAMaze::CreateAbstractBorderEntrances(Cluster& c1, Cluster& c2, LocCluster loc)
 	{
+		throw std::invalid_argument( "Attempted to call CreateAbstractBorderEntrances which is not implemented" ); 
 		//TODO
 	}
 

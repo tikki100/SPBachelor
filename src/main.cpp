@@ -3,32 +3,53 @@
 #include "CImg.h"
 using namespace cimg_library;
 
+#include "classTimer.h"
+
 #include "classMaze.h"
 
 int main(int argc, const char** argv)
 {
 	//TYPE THE EXAMPLE NAME HERE
-    std::string filename = "test03";
+    std::string filename = "test14";
 
     std::string path = "../../examples/" + filename + ".png";
     std::cout << "Loading example from path " << path << std::endl;
     CImg<unsigned char> * img  = new CImg<unsigned char>(path.c_str());
 
     Eng::Maze Maze(img, filename);
-    Maze.RunHPAStar(100);
+
+    //Maze.RunHPAStar(10);
 
     //Maze.Test();
 
     //Maze.RunAStar();
 
+    //Maze.RunDijkstra();
+
+    //Maze.RunHPAStar(10);
+
+    Maze.RunJPS();
 
     //Maze.RunBreadth(true, 40000);
-    /*Maze.RunBreadth();
+    /*{
+        Eng::Timer t;
+        Maze.RunBreadth();
+    }
     * img = CImg<unsigned char>(path.c_str());
-    Maze.RunDijkstra();
+    {
+        Eng::Timer t;
+        Maze.RunDijkstra();
+    }
     * img = CImg<unsigned char>(path.c_str());
-    Maze.RunAStar();*/
-
+    {
+        Eng::Timer t;
+        Maze.RunAStar();
+    }
+    * img = CImg<unsigned char>(path.c_str());*/
+    /*{
+        Eng::Timer t;
+        Maze.RunHPAStar(100);
+    }*/
    
 
     /*
