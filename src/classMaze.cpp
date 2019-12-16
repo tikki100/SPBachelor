@@ -575,6 +575,8 @@ void Maze::RunJPS(bool display, unsigned int scalar, bool saveResult)
 	std::unordered_map< Pixel, Pixel> came_from;
 	std::unordered_map< Pixel, float> cost_so_far;
 
+	RGB path = {255, 0, 0};
+
 	came_from.insert_or_assign(this->m_Start, this->m_Start);
 	cost_so_far.insert_or_assign(this->m_Start, 0);
 
@@ -612,11 +614,11 @@ void Maze::RunJPS(bool display, unsigned int scalar, bool saveResult)
 					cond = 1;
 				for(int i = 0; i < 1*cond; i++)
 				{
-					this->ColorPixel(current, {255, 0, 0});
+					this->ColorPixel(current, path);
 			        current = came_from[current];
 			        if(current == start)
 			        {
-			        	this->ColorPixel(current, {255, 0, 0});
+			        	this->ColorPixel(current, path);
 			        }
 			        if(queue.empty() || current == start)
 						break;
@@ -640,10 +642,10 @@ void Maze::RunJPS(bool display, unsigned int scalar, bool saveResult)
 		}
 		while(current != start)
 		{
-			this->ColorPixel(current, {255, 0, 0});
+			this->ColorPixel(current, path);
 			current = came_from[current];
 		}
-		this->ColorPixel(start, {255, 0, 0});
+		this->ColorPixel(start, path);
 
 		this->SavePicture("_JPS");
 	}
