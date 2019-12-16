@@ -185,7 +185,7 @@ public:
 	 * \param display If true, renders the picture on screen.
 	 * \param saveResult If display is true, this variable determines whether or not to save the result as a file.
 	 */
-	void RunJPS(bool display = false, bool saveResult = false);
+	void RunJPS(bool display = false, unsigned int scalar = 1, bool saveResult = false);
 
 	void Test();
 
@@ -239,8 +239,8 @@ private:
 	 * \param cost_so_far Takes a map of floats, with a key that is a pixel
 	 */
 	void JPSStep(std::priority_queue<WeightedPixel>& queue, 
-	                   std::unordered_map< Pixel, Pixel >& came_from);
-	                   //std::unordered_map< Pixel, float>& cost_so_far);
+	                   std::unordered_map< Pixel, Pixel >& came_from,
+	                   std::unordered_map< Pixel, float>& cost_so_far);
 
 	/**
 	 * Finds all walkable neighbors for a given pixel.
@@ -259,7 +259,11 @@ private:
 	 */
 	std::vector<Pixel> JPSPrunedNeighbors(Pixel current, std::unordered_map< Pixel, Pixel >& came_from);
 
-	std::tuple<Pixel, bool> JPSJump(Pixel& current, int dx, int dy, std::unordered_map< Pixel, Pixel >& came_from);
+	std::tuple<Pixel, bool> JPSJump(Pixel& current, 
+										int dx, 
+										int dy, 
+										std::unordered_map< Pixel, Pixel >& came_from,
+										std::unordered_map< Pixel, float>& cost_so_far);
 
 	/**
 	 * Finds all walkable neighbors for a given pixel.
