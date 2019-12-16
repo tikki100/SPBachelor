@@ -660,7 +660,7 @@ void Maze::JPSStep(std::priority_queue<WeightedPixel>& queue,
 	RGB purple = {255, 0, 255};
 	RGB path = {255, 0, 0};
 
-	bool debug = true;
+	bool debug = false;
 
 	if(queue.empty())
 		throw std::invalid_argument( "Attempted to do JPS on an empty queue." );
@@ -709,7 +709,7 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current,
 
 	Pixel New = {current.x + dx, current.y + dy};
 
-	bool debug = true;
+	bool debug = false;
 
 	if(debug)
 		std::cout << "Jumping over " << current << " with dx: " << dx << " dy: " << dy << std::endl;
