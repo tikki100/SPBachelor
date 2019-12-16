@@ -96,8 +96,9 @@ bool Maze::IsWalkable(unsigned int x, unsigned int y)
 	RGB white = {255, 255, 255};
 	RGB grey = {126, 126, 126};
 	RGB purple = {255, 0, 255};
+	RGB goal = {0, 0, 255};
 
-	if(this->IsColor(x, y, white) || this->IsColor(x,y, grey) || this->IsColor(x, y, purple))
+	if(this->IsColor(x, y, white) || this->IsColor(x,y, grey) || this->IsColor(x, y, purple) || this->IsColor(x, y, goal))
 	{
 		return true;
 	}
@@ -659,6 +660,8 @@ void Maze::JPSStep(std::priority_queue<WeightedPixel>& queue,
 	RGB purple = {255, 0, 255};
 	RGB path = {255, 0, 0};
 
+	bool debug = true;
+
 	if(queue.empty())
 		throw std::invalid_argument( "Attempted to do JPS on an empty queue." );
 
@@ -669,7 +672,8 @@ void Maze::JPSStep(std::priority_queue<WeightedPixel>& queue,
 
 	queue.pop();
 
-	//std::cout << "\nRunning on next jump point" << current << std::endl; 
+	if(debug)
+		std::cout << "\nRunning on next jump point" << current << std::endl; 
 	std::vector<Pixel> neighbors = this->JPSPrunedNeighbors(current, came_from);
 	
 	for(Pixel neighbor : neighbors)
@@ -687,7 +691,8 @@ void Maze::JPSStep(std::priority_queue<WeightedPixel>& queue,
 
 		if(JPFound)
 		{
-			//std::cout << "Found JP! Adding " << n << " to queue!" << std::endl;
+			if(debug)
+				std::cout << "Found JP! Adding " << n << " to queue!" << std::endl;
 			float priority = cost_so_far[n] + this->GetHeuristicCost(m_End, n);
 			WeightedPixel neigh_weighted = {n.x, n.y, priority};
 			queue.emplace(neigh_weighted);
@@ -703,12 +708,15 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current,
 {
 
 	Pixel New = {current.x + dx, current.y + dy};
-	//std::cout << "Jumping over " << current << " with dx: " << dx << " dy: " << dy << std::endl;
 
+	bool debug = true;
+
+	if(debug)
+		std::cout << "Jumping over " << current << " with dx: " << dx << " dy: " << dy << std::endl;
 
 	if(current == this->m_End)
 	{
-		std::cout << "\n---Found end---\n" << std::endl;
+		std::cout << "Found end!" << std::endl;
 		this->m_endFound = true;
 		return std::tuple(current, true);
 	}
@@ -729,7 +737,8 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current,
 			&& !(current.y + dy == this->img->height()))
 		{
 			if(!(this->IsWalkable(current.x - dx, current.y))
-				&& this->IsWalkable(current.x - dx, current.y + dy))
+				&& this->IsWalkable(current.x - dx, current.y + dy)
+				&& this->IsWalkable(current.x, current.y + dy))
 			{
 				//std::cout << "Added diagonal forced neighbor" << std::endl;
 				return std::tuple(current, true);
@@ -742,7 +751,8 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current,
 			&& !(current.x + dx == this->img->width()))
 		{
 			if(!(this->IsWalkable(current.x, current.y - dy))
-				&& this->IsWalkable(current.x + dx, current.y - dy))
+				&& this->IsWalkable(current.x + dx, current.y - dy)
+				&& this->IsWalkable(current.x + dx, current.y))
 			{
 				//std::cout << "Added diagonal forced neighbor" << std::endl;
 				return std::tuple(current, true);
@@ -761,28 +771,29 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current,
 	}
 	else if(dx != 0) //Horizontally
 	{
-		//std::cout << "Horizontally" << std::endl;
 
 		if( current.y != 0
 			&& !(current.x == 0 && dx == -1)
-			&& !(current.x + dx == this->img->width() ))
+			&& !(current.x + dx == this->img->width())
+			&& this->IsWalkable(current.x + dx, current.y))
 		{
 			if(!(this->IsWalkable(current.x, current.y - 1))
 				&& this->IsWalkable(current.x + dx, current.y - 1))
 			{
-				//std::cout << "Added horizontal forced neighbor" << std::endl;
+				//if(debug)
+				//	std::cout << "Added horizontal forced neighbor" << std::endl;
 				return std::tuple(current, true);
 			}
 		}
 
 		if( current.y != this->img->height()-1
 			&& !(current.x == 0 && dx == -1)
-			&& !(current.x + dx == this->img->width() ))
+			&& !(current.x + dx == this->img->width() )
+			&& this->IsWalkable(current.x + dx, current.y))
 		{
 			if(!(this->IsWalkable(current.x, current.y + 1))
 				&& this->IsWalkable(current.x + dx, current.y + 1))
 			{
-				//std::cout << "Added horizontal forced neighbor" << std::endl;
 				return std::tuple(current, true);
 			}
 		}
@@ -797,7 +808,8 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current,
 			&& !(current.y + dy == this->img->height()))
 		{
 			if(!this->IsWalkable(current.x - 1, current.y)
-				&& this->IsWalkable(current.x - 1, current.y + dy))
+				&& this->IsWalkable(current.x - 1, current.y + dy)
+				&& this->IsWalkable(current.x, current.y + dy))
 			{
 				//std::cout << "Added vertical forced neighbor" << std::endl;
 				return std::tuple(current, true);
@@ -810,7 +822,8 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current,
 			&& !(current.y + dy == this->img->height()))
 		{
 			if(!this->IsWalkable(current.x + 1, current.y)
-				&& this->IsWalkable(current.x + 1, current.y + dy))
+				&& this->IsWalkable(current.x + 1, current.y + dy)
+				&& this->IsWalkable(current.x, current.y + dy))
 			{
 				//std::cout << "Added vertical forced neighbor" << std::endl;
 				return std::tuple(current, true);
@@ -826,10 +839,19 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current,
 		&& !(current.y == 0 && dy == -1)
 		&& !(current.y + dy == this->img->height()))
 	{
-		came_from.insert_or_assign(New, current);
-		float new_weight = cost_so_far[current] + this->GetWeightedCost(New, current);
-		cost_so_far.insert_or_assign(New, new_weight);
-		return this->JPSJump(New, dx, dy, came_from, cost_so_far);
+		if(this->IsWalkable(current.x + dx, current.y) || this->IsWalkable(current.x, current.y + dy))
+		{
+			came_from.insert_or_assign(New, current);
+			float new_weight = cost_so_far[current] + this->GetWeightedCost(New, current);
+			cost_so_far.insert_or_assign(New, new_weight);
+			return this->JPSJump(New, dx, dy, came_from, cost_so_far);
+		}
+		else
+		{
+			if(debug)
+				std::cout << "Can't cross diagonally because of obstacles" << std::endl;
+			return std::tuple(current, false);
+		}
 	}
 	else
 	{
@@ -842,6 +864,11 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current,
 
 std::vector<Pixel> Maze::JPSPrunedNeighbors(Pixel current, 
 											std::unordered_map< Pixel, Pixel >& came_from){
+
+
+	Pixel debugPixel = {2,10};
+	bool debug = false;
+
 	if(came_from[current] == current) //If we're at the start, return all directions. 
 		return this->GetNeighbors(current); //TODO: Ensure optimality. We need to return in a specific order. 
 
@@ -852,10 +879,8 @@ std::vector<Pixel> Maze::JPSPrunedNeighbors(Pixel current,
 	int dx = current.x - came_from[current].x;
     int dy = current.y - came_from[current].y;
 
-    //std::cout << "Getting pruned for " << current << " dx: " << dx << " dy: " << dy << std::endl;
-
-    bool debug = false;
-
+    if(debug)
+    	std::cout << "Getting pruned for " << current << " dx: " << dx << " dy: " << dy << std::endl;
 
     if(dy == 0) //We're moving horizontally.
     {
@@ -912,8 +937,9 @@ std::vector<Pixel> Maze::JPSPrunedNeighbors(Pixel current,
     }
     else //We're moving diagonally
     {
-    	bool _withinYAxis, _withinXAxis = false; //Bounds check for our 3rd pixel
-
+    	bool _withinYAxis = false, _withinXAxis = false; //Bounds check for our 3rd pixel;
+    	if(debug)
+    		std::cout << "Moving diagonally" << std::endl;
     	if(!(dy == -1 && current.y == 0)
     		&& !(current.y + dy == this->img->height()))
     	{
@@ -921,6 +947,8 @@ std::vector<Pixel> Maze::JPSPrunedNeighbors(Pixel current,
     		Pixel Next = {current.x, current.y + dy};
     		if(this->IsWalkable(Next) || Next == this->m_End)
     		{
+    			if(debug)
+    				std::cout << "Adding within Y" << std::endl;
     			res.emplace_back(Next);
     		}
     	}
@@ -931,18 +959,24 @@ std::vector<Pixel> Maze::JPSPrunedNeighbors(Pixel current,
     		Pixel Next = {current.x + dx, current.y};
     		if(this->IsWalkable(Next) || Next == this->m_End)
     		{
+    			if(debug)
+    				std::cout << "Adding within X" << std::endl;
     			res.emplace_back(Next);
     		}
     	}
-
     	if(_withinYAxis && _withinXAxis)
     	{
     		Pixel Next = {current.x + dx, current.y + dy};
     		if(this->IsWalkable(Next) || Next == this->m_End)
     		{
+    			if(debug)
+    				std::cout << "Adding within x and y" << std::endl;
     			res.emplace_back(Next);
     		}
     	}
+
+    	if(debug)
+    		std::cout << "_withinYAxis = " << _withinYAxis << " _withinXAxis = " << _withinXAxis << std::endl;
 
     	//Do we have a forced neighbour?
     	//Forced neighbours on a diagonal are always diagonals. Therefore,
@@ -950,7 +984,8 @@ std::vector<Pixel> Maze::JPSPrunedNeighbors(Pixel current,
     	if(!(dx == 1 && current.x == 0)
     		&& !(current.x - dx == this->img->width())
     		&& _withinYAxis
-    		&& !this->IsWalkable(current.x - dx, current.y))
+    		&& !this->IsWalkable(current.x - dx, current.y)
+    		&& this->IsWalkable(current.x, current.y + dy))
     	{
 			Pixel Forced = {current.x - dx, current.y + dy};
     		if(this->IsWalkable(Forced) || Forced == this->m_End)
@@ -958,11 +993,11 @@ std::vector<Pixel> Maze::JPSPrunedNeighbors(Pixel current,
     			res.emplace_back(Forced);
     		}
     	}
-
     	if(!(dy == 1 && current.y == 0)
     		&& !(current.y - dy == this->img->height())
     		&& _withinXAxis
-    		&& !this->IsWalkable(current.x, current.y - dy))
+    		&& !this->IsWalkable(current.x, current.y - dy)
+    		&& this->IsWalkable(current.x + dx, current.y))
     	{
 			Pixel Forced = {current.x + dx, current.y - dy};
     		if(this->IsWalkable(Forced) || Forced == this->m_End)
@@ -972,12 +1007,15 @@ std::vector<Pixel> Maze::JPSPrunedNeighbors(Pixel current,
     	}
 
     }
-    /*
-    std::cout << "Res: " << res.size() << std::endl;
-
-    for(Pixel t : res)
-    	std::cout << " Pixel: " << t;
-    std::cout << std::endl;*/
+    
+    if(debug)
+    {
+        std::cout << "Res: " << res.size() << std::endl;
+    
+        for(Pixel t : res)
+        	std::cout << " Pixel: " << t;
+        std::cout << std::endl;
+    }
 	return res;
 }
 
@@ -1155,7 +1193,7 @@ std::vector<Pixel> Maze::GetNeighbors(unsigned int x, unsigned int y, bool FindE
 
 		//We need to return horizontal - and vertical neighbours first to ensure
 		//JPS optimality.
-		if(!(y == this->img->height()-1))
+		if(!(y+1 == this->img->height()))
 		{
 			Pixel n = {x , y + 1};
 			if(this->IsWalkable(n) || n == this->m_End)
@@ -1169,7 +1207,7 @@ std::vector<Pixel> Maze::GetNeighbors(unsigned int x, unsigned int y, bool FindE
 				result.emplace_back(n);
 		}
 
-		if(!(x == this->img->width()-1))
+		if(!(x + 1 == this->img->width()))
 		{
 			Pixel n = {x + 1, y};
 			if(this->IsWalkable(n) || n == this->m_End)
@@ -1191,21 +1229,21 @@ std::vector<Pixel> Maze::GetNeighbors(unsigned int x, unsigned int y, bool FindE
 				result.emplace_back(n);
 		}
 
-		if(!(x == this->img->width()-1) && !(y == 0))
+		if(!(x + 1 == this->img->width()) && !(y == 0))
 		{
 			Pixel n = {x + 1, y - 1};
 			if(this->IsWalkable(n) || n == this->m_End)
 				result.emplace_back(n);
 		}
 
-		if(!(x == 0) && !(y == this->img->height()-1))
+		if(!(x == 0) && !(y + 1 == this->img->height()))
 		{
 			Pixel n = {x - 1, y + 1};
 			if(this->IsWalkable(n) || n == this->m_End)
 				result.emplace_back(n);
 		}
 
-		if(!(x == this->img->width()-1) && !(y == this->img->height()-1))
+		if(!(x + 1 == this->img->width()) && !(y + 1 == this->img->height()))
 		{
 			Pixel n = {x + 1, y + 1};
 			if(this->IsWalkable(n) || n == this->m_End)

@@ -14,6 +14,7 @@ using namespace cimg_library;
 
 #include "structPixels.h"
 #include "classHPAMaze.h"
+#include "classTimer.h"
 
 namespace Eng
 {
