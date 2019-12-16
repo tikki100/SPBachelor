@@ -339,6 +339,8 @@ private:
 	 */
 	void SavePicture(std::string filename);
 
+	std::vector<Pixel> m_jpsPoints; 
+
 
 	unsigned int m_Sx;
 	unsigned int m_Sy;

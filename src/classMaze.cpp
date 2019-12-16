@@ -594,7 +594,7 @@ void Maze::JPSStep(std::priority_queue<WeightedPixel>& queue,
 	                   		std::unordered_map< Pixel, Pixel >& came_from) {
 	                   		//std::unordered_map< Pixel, float>& cost_so_far){
 
-	RGB grey = {126, 126, 126};
+	RGB purple = {255, 0, 255};
 	RGB path = {255, 0, 0};
 
 	if(queue.empty())
@@ -603,20 +603,22 @@ void Maze::JPSStep(std::priority_queue<WeightedPixel>& queue,
 	WeightedPixel coords = queue.top();
 	Pixel current = {coords.x, coords.y};
 
-	this->ColorPixel(current, grey);
+	this->ColorPixel(current, purple);
 
 	queue.pop();
 
-	std::cout << "\nStepping on " << current << std::endl; 
+	std::cout << "\nRunning on next jump point" << current << std::endl; 
 	std::vector<Pixel> neighbors = this->JPSPrunedNeighbors(current, came_from);
 	
 	for(Pixel neighbor : neighbors)
 	{
-		std::cout << "Current: " << current << " Neighbor: " << neighbor;
+		if(this->m_endFound == true)
+			break;
 		int dx = neighbor.x - current.x;
 		int dy = neighbor.y - current.y;
 
-		std::cout << " dx: " << dx << " dy: " << dy << std::endl;
+		came_from.insert_or_assign(neighbor, current);
+
 		
 		auto [n, success] = this->JPSJump(neighbor, dx, dy, came_from);
 		if(success)
@@ -632,14 +634,12 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current, int dx, int dy, std::unord
 {
 
 	Pixel New = {current.x + dx, current.y + dy};
-	std::cout << "Running jump on " << current << " with dx: " << dx << " dy: " << dy << std::endl;
-
-	came_from.insert_or_assign(current, current);
+	std::cout << "Jumping over " << current << " with dx: " << dx << " dy: " << dy << std::endl;
 
 
 	if(current == this->m_End)
 	{
-		std::cout << "Found end" << std::endl;
+		std::cout << "\n---Found end---\n" << std::endl;
 		this->m_endFound = true;
 		return std::tuple(current, true);
 	}
@@ -666,7 +666,6 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current, int dx, int dy, std::unord
 
 		if(xt || yt)
 		{
-			came_from[current] = {current.x - dx, current.y - dy};
 			std::cout << "Added " << current << " due to jump either xt or yt" << std::endl;
 			return std::tuple(current, true);
 		}
@@ -677,11 +676,10 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current, int dx, int dy, std::unord
 	else if(dx != 0) //Horizontally
 	{
 		std::cout << "Horizontally" << std::endl;
-		if( (current.y != 0 && !(this->IsWalkable(current.x, current.y - 1)) && this->IsWalkable(current.x + dx, current.y - 1))
-			|| (current.y != this->img->height()-1 && !(this->IsWalkable(current.x, current.y + 1)) && this->IsWalkable(current.x + dx, current.y + 1)) )
+		if( (current.y != 0 && (dx != -1 || current.x != 0) && !(this->IsWalkable(current.x, current.y - 1)) && this->IsWalkable(current.x + dx, current.y - 1))
+			|| (current.y != this->img->height()-1 && (dx != -1 || current.x != 0) && !(this->IsWalkable(current.x, current.y + 1)) && this->IsWalkable(current.x + dx, current.y + 1)) )
 		{
 			std::cout << "Added forced neighbor" << std::endl;
-			came_from[current] = {current.x - dx, current.y - dy};
 			return std::tuple(current, true);
 		}
 
@@ -689,11 +687,10 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current, int dx, int dy, std::unord
 	else //Vertically
 	{
 		std::cout << "Vertically" << std::endl;
-		if( (current.x != 0 && !this->IsWalkable(current.x - 1, current.y) && this->IsWalkable(current.x - 1, current.y + dy))
-			|| (current.x != this->img->width()-1 && !this->IsWalkable(current.x + 1, current.y) && this->IsWalkable(current.x + 1, current.y + dy)))
+		if( (current.x != 0 && (dy != -1 || current.y != 0) && !this->IsWalkable(current.x - 1, current.y) && this->IsWalkable(current.x - 1, current.y + dy))
+			|| (current.x != this->img->width()-1 && (dy != -1 || current.y != 0) && !this->IsWalkable(current.x + 1, current.y) && this->IsWalkable(current.x + 1, current.y + dy)))
 		{
 			std::cout << "Added vertical forced neighbor" << std::endl;
-			came_from[current] = {current.x - dx, current.y - dy};
 			return std::tuple(current, true);
 		}
 
@@ -702,7 +699,10 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current, int dx, int dy, std::unord
 
 	if(0 <= New.x && New.x < this->img->width()
 		&& 0 <= New.y && New.y < this->img->height())
+	{
+		came_from.try_emplace(New, current);
 		return this->JPSJump(New, dx, dy, came_from);
+	}
 	else
 		return std::tuple(current, false);
 
@@ -712,7 +712,7 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current, int dx, int dy, std::unord
 std::vector<Pixel> Maze::JPSPrunedNeighbors(Pixel current, 
 											std::unordered_map< Pixel, Pixel >& came_from){
 	if(came_from[current] == current) //If we're at the start, return all directions. 
-		return this->GetNeighbors(current);
+		return this->GetNeighbors(current); //TODO: Ensure optimality. We need to return in a specific order. 
 
 	std::vector<Pixel> res;
 
@@ -723,97 +723,134 @@ std::vector<Pixel> Maze::JPSPrunedNeighbors(Pixel current,
 
     std::cout << "Getting pruned for " << current << " dx: " << dx << " dy: " << dy << std::endl;
 
+    bool debug = false;
+    Pixel debugpixel = {6,7};
+
+    if(current == debugpixel)
+    	debug = true;
+
 
     if(dy == 0) //We're moving horizontally.
     {
-    	if((dx == -1 && current.x != 0)
-    		|| (current.x+dx != this->img->width()) )
+    	if(!(dx == -1 && current.x == 0)
+    		&& !(current.x+dx == this->img->width()) )
     	{
-    		Pixel Next = {current.x + dx, current.y + dy};
+    		Pixel Next = {current.x + dx, current.y};
     		if(this->IsWalkable(Next) || Next == this->m_End)
     		{
     			res.emplace_back(Next);
-    			if(current.y != 0 && !this->IsWalkable(current.x, current.y - 1))
-    			{
-    				Pixel Forced = {current.x + dx, current.y - 1};
-    				res.emplace_back(Forced);
-    			}
-    			else if(current.y != this->img->height() && !this->IsWalkable(current.x, current.y + 1))
-    			{
-    				Pixel Forced = {current.x + dx, current.y + 1};
-    				res.emplace_back(Forced);
-    			}
     		}
+			//Is there a forced neighbour above?
+			if(current.y != 0 && !this->IsWalkable(current.x, current.y - 1))
+			{
+				Pixel Forced = {current.x + dx, current.y - 1};
+				if(this->IsWalkable(Forced) || Forced == this->m_End)
+					res.emplace_back(Forced);
+			} 
+			//Is there a forced neighbour below?
+			if(current.y != this->img->height()-1 && !this->IsWalkable(current.x, current.y + 1))
+			{
+				Pixel Forced = {current.x + dx, current.y + 1};
+				if(this->IsWalkable(Forced) || Forced == this->m_End)
+					res.emplace_back(Forced);
+			}
     	}
-
     }
     else if(dx == 0) //We're moving vertically.
     {
-    	if((dy == -1 && current.y != 0)
-    		|| (current.y + dy != this->img->height()) )
+    	if(!(dy == -1 && current.y == 0)
+    		&& !(current.y + dy == this->img->height()) )
     	{
     		Pixel Next = {current.x, current.y + dy};
     		if(this->IsWalkable(Next) || Next == this->m_End)
     		{
     			res.emplace_back(Next);
-    			if(current.x != 0 && !this->IsWalkable(current.x - 1, current.y))
-    			{
-    				Pixel Forced = {current.x-1, current.y + dy};
-    				res.emplace_back(Forced);
-    			}
-    			else if (current.x != this->img->width()-1 && !this->IsWalkable(current.x + 1, current.y))
-    			{
-    				Pixel Forced = {current.x+1, current.y + dy};
-    				res.emplace_back(Forced);
-    			}
     		}
+    		//Is there a forced neighbour to the left?
+			if(current.x != 0 && !this->IsWalkable(current.x - 1, current.y))
+			{
+				Pixel Forced = {current.x-1, current.y + dy};
+				if(this->IsWalkable(Forced) || Forced == this->m_End)
+					res.emplace_back(Forced);
+			}
+			//Is there a forced neighbour to the right?
+			if (current.x != this->img->width()-1 && !this->IsWalkable(current.x + 1, current.y))
+			{
+				Pixel Forced = {current.x+1, current.y + dy};
+				if(this->IsWalkable(Forced) || Forced == this->m_End)
+					res.emplace_back(Forced);
+			}
     	}
+
     }
     else //We're moving diagonally
     {
-    	bool t1, t2 = false; 
-    	if((dy == -1 && current.y != 0)
-    		|| (current.y + dy != this->img->height()))
+    	bool _withinYAxis, _withinXAxis = false; //Bounds check for our 3rd pixel
+
+    	if(!(dy == -1 && current.y == 0)
+    		&& !(current.y + dy == this->img->height()))
     	{
-    		t2 = true;
+    		_withinYAxis = true;
     		Pixel Next = {current.x, current.y + dy};
     		if(this->IsWalkable(Next) || Next == this->m_End)
     		{
     			res.emplace_back(Next);
-    			if((current.x != 0 && dx == 1)
-    				&& (current.x != this->img->width()-1 && dx == -1)
-    				&& !this->IsWalkable(current.x - dx, current.y))
-    			{
-    				Pixel Forced = {current.x - dx, current.y + dy};
-    			}
     		}
     	}
-    	if((dx == -1 && current.x != 0)
-    		|| (current.x + dx != this->img->width()) )
+    	if(!(dx == -1 && current.x == 0)
+    		&& !(current.x + dx == this->img->width()) )
     	{
-    		t1 = true;
+    		_withinXAxis = true;
     		Pixel Next = {current.x + dx, current.y};
     		if(this->IsWalkable(Next))
     		{
     			res.emplace_back(Next);
-    			if((current.y != 0 && dy == 1)
-    				&& (current.y != this->img->height()-1 && dy == -1)
-    				&& !this->IsWalkable(current.x, current.y - dy))
-    			{
-    				Pixel Forced = {current.x + dx, current.y - dy};
-    			}
     		}
     	}
-    	if(t1 && t2)
+
+    	if(_withinYAxis && _withinXAxis)
     	{
     		Pixel Next = {current.x + dx, current.y + dy};
     		if(this->IsWalkable(Next))
+    		{
     			res.emplace_back(Next);
+    		}
+    	}
+
+    	//Do we have a forced neighbour?
+    	//Forced neighbours on a diagonal are always diagonals. Therefore,
+    	//They are added last. 
+    	if(!(dx == 1 && current.x == 0)
+    		&& !(current.x - dx == this->img->width())
+    		&& _withinYAxis
+    		&& !this->IsWalkable(current.x - dx, current.y))
+    	{
+			Pixel Forced = {current.x - dx, current.y + dy};
+    		if(this->IsWalkable(Forced) || Forced == this->m_End)
+    		{
+    			res.emplace_back(Forced);
+    		}
+    	}
+
+    	if(!(dy == 1 && current.y == 0)
+    		&& !(current.y - dy == this->img->height())
+    		&& _withinXAxis
+    		&& !this->IsWalkable(current.x, current.y - dy))
+    	{
+			Pixel Forced = {current.x + dx, current.y - dy};
+    		if(this->IsWalkable(Forced) || Forced == this->m_End)
+    		{
+    			res.emplace_back(Forced);
+    		}
     	}
 
     }
 
     std::cout << "Res: " << res.size() << std::endl;
+
+    for(Pixel t : res)
+    	std::cout << " Pixel: " << t;
+    std::cout << std::endl;
 	return res;
 }
 
@@ -988,34 +1025,67 @@ std::vector<Pixel> Maze::GetNeighbors(unsigned int x, unsigned int y, bool FindE
 	if(FindEightNeighbors)
 	{
 		result.reserve(8);
-	
-		for(int _x = -1; _x < 2; _x++) //Check all 8 neighboring pixels.
+
+		//We need to return horizontal - and vertical neighbours first to ensure
+		//JPS optimality.
+		if(!(y == this->img->height()-1))
 		{
-			if(x == 0 && _x == -1) //If we move too far left, skip
-				continue;
-			else if(x == (this->img->width()-1) && _x == 1) //If we're too  far right, skip
-				continue;
-			for(int _y = -1; _y < 2; _y++)
-			{
-				if(y == 0 && _y == -1)  //If we're above the picture, skip
-					continue;
-				else if(y == (this->img->height()-1) && _y == 1) //If we're below the picture, skip
-					continue;
-				else if(x == x + _x && y == y + _y) //If we're on the current pixel, skip
-					continue;
-				Pixel neighbor = {x + _x, y + _y};
-	
-				if(this->IsWalkable(neighbor))
-				{
-					result.emplace_back(neighbor);
-				}
-				else if(neighbor.x == this->m_Ex && neighbor.y == this->m_Ey)
-				{
-					result.emplace_back(neighbor);
-					return result; //If we have found the end, return early.
-				}
-			}
+			Pixel n = {x , y + 1};
+			if(this->IsWalkable(n) || n == this->m_End)
+				result.emplace_back(n);
 		}
+
+		if(!(y == 0))
+		{
+			Pixel n = {x, y - 1};
+			if(this->IsWalkable(n) || n == this->m_End)
+				result.emplace_back(n);
+		}
+
+		if(!(x == this->img->width()-1))
+		{
+			Pixel n = {x + 1, y};
+			if(this->IsWalkable(n) || n == this->m_End)
+				result.emplace_back(n);
+		}
+
+		if(!(x == 0))
+		{
+			Pixel n = {x - 1, y};
+			if(this->IsWalkable(n) || n == this->m_End)
+				result.emplace_back(n);
+		}
+
+		//Diagonal neighbours.
+		if(!(x == 0) && !(y == 0))
+		{
+			Pixel n = {x - 1, y - 1};
+			if(this->IsWalkable(n) || n == this->m_End)
+				result.emplace_back(n);
+		}
+
+		if(!(x == this->img->width()-1) && !(y == 0))
+		{
+			Pixel n = {x + 1, y - 1};
+			if(this->IsWalkable(n) || n == this->m_End)
+				result.emplace_back(n);
+		}
+
+		if(!(x == 0) && !(y == this->img->height()-1))
+		{
+			Pixel n = {x - 1, y + 1};
+			if(this->IsWalkable(n) || n == this->m_End)
+				result.emplace_back(n);
+		}
+
+		if(!(x == this->img->width()-1) && !(y == this->img->height()-1))
+		{
+			Pixel n = {x + 1, y + 1};
+			if(this->IsWalkable(n) || n == this->m_End)
+				result.emplace_back(n);
+		}
+
+		return result;
 	}
 	else
 	{
