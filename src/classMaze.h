@@ -238,10 +238,12 @@ private:
 	 * \param queue Takes a queue of weighted pixels that are not empty.
 	 * \param came_from Takes a map of pixels with a key that is a pixel.
 	 * \param cost_so_far Takes a map of floats, with a key that is a pixel
+	 * \param visited Takes a map of bools, with a key that is a pixel. 
 	 */
 	void JPSStep(std::priority_queue<WeightedPixel>& queue, 
 	                   std::unordered_map< Pixel, Pixel >& came_from,
-	                   std::unordered_map< Pixel, float>& cost_so_far);
+	                   std::unordered_map< Pixel, float>& cost_so_far,
+	                   std::unordered_map< Pixel, bool>& visited);
 
 	/**
 	 * Finds all walkable neighbors for a given pixel.
