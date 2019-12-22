@@ -170,10 +170,11 @@ void Maze::RunBreadth(bool display, unsigned int scalar, bool saveResult)
 	std::cout << "Running Breadth!" << std::endl;
 	std::queue<Pixel> queue;
 	std::unordered_map<Pixel, Pixel> came_from;
-
+	std::unordered_map<Pixel, float> cost_so_far;
 
 	queue.emplace(this->m_Start);
 	came_from.insert_or_assign(this->m_Start, this->m_Start);
+	cost_so_far.insert_or_assign(this->m_Start, 0.0f);
 
 	this->m_endFound = false;
 
@@ -187,20 +188,14 @@ void Maze::RunBreadth(bool display, unsigned int scalar, bool saveResult)
 		Pixel current = this->m_End;
 		Pixel start = this->m_Start;
 
-		unsigned int i;
 	    while (!main_disp.is_closed()) 
 	    {
 	    	main_disp.resize(500,500).display((*this->img));
 			if(!queue.empty())
 			{
-				i++;
-				if(i % 100 == true)
-				{
-					std::cout << "Queue size: " << queue.size() << std::endl;
-				}
 				for(unsigned int i = 0; i < 1 * scalar; i++)
 				{
-					this->BreadthStep(queue, came_from);
+					this->BreadthStep(queue, came_from, cost_so_far);
 					if(queue.empty())
 						break;
 				}
@@ -233,11 +228,10 @@ void Maze::RunBreadth(bool display, unsigned int scalar, bool saveResult)
 	{
 		Pixel current = this->m_End;
 		Pixel start = this->m_Start;
-		unsigned int i = 0;
 
 		while(!queue.empty())
 		{
-			this->BreadthStep(queue, came_from);
+			this->BreadthStep(queue, came_from, cost_so_far);
 		}
 		while(current != start)
 		{
@@ -255,11 +249,10 @@ void Maze::RunBreadth(bool display, unsigned int scalar, bool saveResult)
 }
 
 void Maze::BreadthStep(std::queue<Pixel>& queue, 
-	                   	std::unordered_map< Pixel, Pixel >& came_from)
+	                   	std::unordered_map< Pixel, Pixel >& came_from,
+	                   	std::unordered_map< Pixel, float >& cost_so_far)
 {
 	RGB grey = {126, 126, 126};
-	RGB black = {0, 0, 0};
-	RGB path = {255, 0, 0};
 
 	if(queue.empty())
 		throw std::invalid_argument( "Attempted to do BreadthStep on an empty queue." );
@@ -271,13 +264,16 @@ void Maze::BreadthStep(std::queue<Pixel>& queue,
 
 	for(Pixel& neighbor : neighbors)
 	{
+		float new_weight = cost_so_far[current] + this->GetWeightedCost(neighbor, current);
+
 		if(neighbor == this->m_End)
 		{
 			//Break the loop
 			std::cout << "Found end!" << std::endl;
 			this->m_endFound = true;
 			queue = std::queue<Pixel>();
-			came_from.emplace(neighbor, current);
+			came_from.insert_or_assign(neighbor, current);
+			cost_so_far.insert_or_assign(neighbor, new_weight);
 			return;
 		}
 		else
@@ -285,7 +281,8 @@ void Maze::BreadthStep(std::queue<Pixel>& queue,
 			if(came_from.count(neighbor) == 0)
 			{
 				this->ColorPixel(neighbor, grey);
-				came_from.emplace(neighbor, current);
+				came_from.insert_or_assign(neighbor, current);
+				cost_so_far.insert_or_assign(neighbor, new_weight);
 				queue.emplace(neighbor);
 			}
 		}
@@ -375,7 +372,6 @@ void Maze::DijkstraStep(std::priority_queue<WeightedPixel>& queue,
 	                   		std::unordered_map< Pixel, float>& cost_so_far)
 {
 	RGB grey = {126, 126, 126};
-	RGB path = {255, 0, 0};
 
 	if(queue.empty())
 		throw std::invalid_argument( "Attempted to do DijkstraStep on an empty queue." );
@@ -500,7 +496,6 @@ void Maze::AStarStep(std::priority_queue<WeightedPixel>& queue,
 	                   		std::unordered_map< Pixel, float>& cost_so_far)
 {
 	RGB grey = {126, 126, 126};
-	RGB path = {255, 0, 0};
 
 	if(queue.empty())
 		throw std::invalid_argument( "Attempted to do DijkstraStep on an empty queue." );
@@ -660,7 +655,6 @@ void Maze::JPSStep(std::priority_queue<WeightedPixel>& queue,
 	                   		std::unordered_map< Pixel, bool >& visited ){
 
 	RGB purple = {255, 0, 255};
-	RGB path = {255, 0, 0};
 
 	bool debug = false;
 
@@ -903,8 +897,6 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current,
 std::vector<Pixel> Maze::JPSPrunedNeighbors(Pixel current, 
 											std::unordered_map< Pixel, Pixel >& came_from){
 
-
-	Pixel debugPixel = {2,10};
 	bool debug = false;
 
 	if(came_from[current] == current) //If we're at the start, return all directions. 

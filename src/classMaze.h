@@ -210,9 +210,11 @@ private:
 	 * Runs a step on Breadth First shortest path.
 	 * \param queue Takes a queue of pixels that is not empty.
 	 * \param came_from Takes a map of pixels, with a key using a pixel. 
+ 	 * \param cost_so_far Takes a map of floats, with a key that is a pixel
 	 */
 	void BreadthStep(std::queue<Pixel>& queue,
-		             	std::unordered_map<Pixel, Pixel>& came_from);
+		             	std::unordered_map<Pixel, Pixel>& came_from,
+	                    std::unordered_map< Pixel, float>& cost_so_far);
 
 	/**
 	 * Runs a step on Dijkstra shortest path.

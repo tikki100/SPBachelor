@@ -10,7 +10,7 @@ using namespace cimg_library;
 int main(int argc, const char** argv)
 {
 	//TYPE THE EXAMPLE NAME HERE
-    std::string filename = "test13";
+    std::string filename = "test3";
 
     std::string path = "../../examples/" + filename + ".png";
     std::cout << "Loading example from path " << path << std::endl;
@@ -31,7 +31,7 @@ int main(int argc, const char** argv)
     //Maze.RunJPS(true, 1, true);
 
     //Maze.RunBreadth(true, 40000);
-    /*{
+    {
         Eng::Timer t;
         Maze.RunBreadth();
     }
@@ -49,7 +49,7 @@ int main(int argc, const char** argv)
     {
         Eng::Timer t;
         Maze.RunJPS();
-    }*/
+    }
     /** img = CImg<unsigned char>(path.c_str());
     {
         Eng::Timer t;
@@ -58,7 +58,7 @@ int main(int argc, const char** argv)
    
 
     
-    for(int i = 2; i < 22; i++)
+    /*for(int i = 2; i < 22; i++)
     {
     	std::string filename = "test";
     	filename += std::to_string(i);
@@ -86,7 +86,7 @@ int main(int argc, const char** argv)
             Eng::Timer t;
             Maze.RunJPS();
         }
-	}
+	}*/
 
 
 
