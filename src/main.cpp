@@ -9,90 +9,84 @@ using namespace cimg_library;
 
 int main(int argc, const char** argv)
 {
-	//TYPE THE EXAMPLE NAME HERE
-    std::string filename = "test3";
+    bool runTests = true;
 
-    std::string path = "../../examples/" + filename + ".png";
-    std::cout << "Loading example from path " << path << std::endl;
-    CImg<unsigned char> * img  = new CImg<unsigned char>(path.c_str());
-
-    Eng::Maze Maze(img, filename);
-
-    //Maze.RunHPAStar(10);
-
-    //Maze.Test();
-
-    //Maze.RunAStar();
-
-    //Maze.RunDijkstra();
-
-    //Maze.RunHPAStar(10);
-
-    //Maze.RunJPS(true, 1, true);
-
-    //Maze.RunBreadth(true, 40000);
+    if(runTests)
     {
-        Eng::Timer t;
-        Maze.RunBreadth();
-    }
-    * img = CImg<unsigned char>(path.c_str());
-    {
-        Eng::Timer t;
-        Maze.RunDijkstra();
-    }
-    * img = CImg<unsigned char>(path.c_str());
-    {
-        Eng::Timer t;
-        Maze.RunAStar();
-    }
-    * img = CImg<unsigned char>(path.c_str());
-    {
-        Eng::Timer t;
-        Maze.RunJPS();
-    }
-    /** img = CImg<unsigned char>(path.c_str());
-    {
-        Eng::Timer t;
-        Maze.RunHPAStar(100);
-    }*/
-   
-
-    
-    /*for(int i = 2; i < 22; i++)
-    {
-    	std::string filename = "test";
-    	filename += std::to_string(i);
-    	std::string path = "../../examples/" + filename + ".png";
-	    std::cout << "Loading example from path " << path << std::endl;
-	    CImg<unsigned char> * img  = new CImg<unsigned char>(path.c_str());
-
-	    Eng::Maze Maze(img, filename);
+        int i = 0;
+        std::array<std::string, 24> tests = { "test1_100x100","test1_200x200","test1_300x300","test1_400x400","test1_500x500",
+                                            "test2_100x100","test2_200x200","test2_300x300","test2_400x400",
+                                            "test3_100x100","test3_200x200","test3_300x300","test3_400x400","test3_500x500",
+                                            "test4_100x100","test4_200x200","test4_300x300","test4_400x400","test4_500x500",
+                                            "test5_100x100","test5_200x200","test5_300x300","test5_400x400","test5_500x500",};
+        for(std::string fileName : tests)
         {
-            Eng::Timer t;
-            Maze.RunBreadth();
+            i++;
+            std::cout << "\n --------------------------------" << std::endl;
+            std::string path = "../../tests/" + fileName + ".png";
+            std::cout << "Loading test from path " << path << std::endl;
+
+            CImg<unsigned char> * img  = new CImg<unsigned char>(path.c_str());
+            Eng::Maze Maze(img, fileName);
+
+            Maze.RunningTests();
+
+            std::cout << "Running breadth" << std::endl;
+            {
+                Eng::Timer t(fileName);
+                Maze.RunBreadth();
+            }
+            * img = CImg<unsigned char>(path.c_str());
+
+            std::cout << "\nRunning Dijkstra" << std::endl;
+            {
+                Eng::Timer t(fileName);
+                Maze.RunDijkstra();
+            }
+            * img = CImg<unsigned char>(path.c_str());
+
+            std::cout << "\nRunning A*" << std::endl;
+            {
+                Eng::Timer t(fileName);
+                Maze.RunAStar();
+            }
+            * img = CImg<unsigned char>(path.c_str());
+
+            std::cout << "\nRunning HPA*" << std::endl;
+            {
+                Eng::Timer t(fileName);
+                Maze.RunHPAStar(10);
+            }
+            * img = CImg<unsigned char>(path.c_str());
+
+            std::cout << "\nRunning JPS" << std::endl;
+            {
+                Eng::Timer t(fileName);
+                Maze.RunJPS();
+            }
         }
-        * img = CImg<unsigned char>(path.c_str());
+    }
+
+    else
+    {
+
+
+        for(int i = 2; i <= 26; i++)
         {
-            Eng::Timer t;
+            std::string fileName = "test" + std::to_string(i); 
+            std::string path = "../../examples/" + fileName + ".png";
+            std::cout << "Loading test from path " << path << std::endl;
+
+            CImg<unsigned char> * img  = new CImg<unsigned char>(path.c_str());
+            Eng::Maze Maze(img, fileName);
+
+            Maze.RunJPS(false, 100, true);
+            * img = CImg<unsigned char>(path.c_str());
             Maze.RunDijkstra();
-        }
-        * img = CImg<unsigned char>(path.c_str());
-        {
-            Eng::Timer t;
+            * img = CImg<unsigned char>(path.c_str());
             Maze.RunAStar();
         }
-        * img = CImg<unsigned char>(path.c_str());
-        {
-            Eng::Timer t;
-            Maze.RunJPS();
-        }
-	}*/
-
-
-
-
-
-    //Maze.RunBreadth(true, 500);
+    }
 
     printf("End of program \n");
 

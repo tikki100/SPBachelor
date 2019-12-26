@@ -12,6 +12,10 @@ using namespace cimg_library;
 #include <string>
 #include <algorithm>
 
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
+
+
 #include "structPixels.h"
 #include "classHPAMaze.h"
 #include "classTimer.h"
@@ -187,6 +191,10 @@ public:
 	 * \param saveResult If display is true, this variable determines whether or not to save the result as a file.
 	 */
 	void RunJPS(bool display = false, unsigned int scalar = 1, bool saveResult = false);
+	/**
+	 * Tells the program that we are running tests now - and that it should save in the tests folder.
+	 */
+	void RunningTests() { this-> m_RunningTests = true; };
 
 	void Test();
 
@@ -210,42 +218,42 @@ private:
 	 * Runs a step on Breadth First shortest path.
 	 * \param queue Takes a queue of pixels that is not empty.
 	 * \param came_from Takes a map of pixels, with a key using a pixel. 
- 	 * \param cost_so_far Takes a map of floats, with a key that is a pixel
+ 	 * \param cost_so_far Takes a map of doubles, with a key that is a pixel
 	 */
 	void BreadthStep(std::queue<Pixel>& queue,
 		             	std::unordered_map<Pixel, Pixel>& came_from,
-	                    std::unordered_map< Pixel, float>& cost_so_far);
+	                    std::unordered_map< Pixel, double>& cost_so_far);
 
 	/**
 	 * Runs a step on Dijkstra shortest path.
 	 * \param queue Takes a queue of weighted pixels that are not empty.
 	 * \param came_from Takes a map of pixels with a key that is a pixel.
-	 * \param cost_so_far Takes a map of floats, with a key that is a pixel
+	 * \param cost_so_far Takes a map of doubles, with a key that is a pixel
 	 */
 	void DijkstraStep(std::priority_queue<WeightedPixel>& queue, 
 	                   std::unordered_map< Pixel, Pixel >& came_from,
-	                   std::unordered_map< Pixel, float>& cost_so_far);
+	                   std::unordered_map< Pixel, double>& cost_so_far);
 	/**
 	 * Runs a step on A-star shortest path.
 	 * \param queue Takes a queue of weighted pixels that are not empty.
 	 * \param came_from Takes a map of pixels with a key that is a pixel.
-	 * \param cost_so_far Takes a map of floats, with a key that is a pixel
+	 * \param cost_so_far Takes a map of doubles, with a key that is a pixel
 	 */
 	void AStarStep(std::priority_queue<WeightedPixel>& queue, 
 	                   std::unordered_map< Pixel, Pixel >& came_from,
-	                   std::unordered_map< Pixel, float>& cost_so_far);
+	                   std::unordered_map< Pixel, double>& cost_so_far);
 
 	/**
 	 * Runs a step on JPS shortest parth
 	 * \param queue Takes a queue of weighted pixels that are not empty.
 	 * \param came_from Takes a map of pixels with a key that is a pixel.
-	 * \param cost_so_far Takes a map of floats, with a key that is a pixel
+	 * \param cost_so_far Takes a map of doubles, with a key that is a pixel
 	 * \param visited Takes a map of bools, with a key that is a pixel. 
 	 */
 	void JPSStep(std::priority_queue<WeightedPixel>& queue, 
 	                   std::unordered_map< Pixel, Pixel >& came_from,
-	                   std::unordered_map< Pixel, float>& cost_so_far,
-	                   std::unordered_map< Pixel, bool>& visited);
+	                   std::unordered_map< Pixel, double>& cost_so_far,
+	                   std::unordered_map< Pixel, int>& visited);
 
 	/**
 	 * Finds all walkable neighbors for a given pixel.
@@ -263,12 +271,21 @@ private:
 	 * \returns A vector of maximum length 8 containing the neighboring pixels.
 	 */
 	std::vector<Pixel> JPSPrunedNeighbors(Pixel current, std::unordered_map< Pixel, Pixel >& came_from);
-
+	/**
+	 * Take a step in the direction of dx dy
+	 * \param current The currnet pixel which we are examining
+	 * \param dx The direction we are walking along the x-axis. Must be between -1 and 1
+	 * \param dy The direction we are walking along the y-axis. Must be between -1 and 1
+	 * \param came_from Takes a map of pixels with a key that is a pixel.
+	 * \param cost_so_far Takes a map of doubles, with a key that is a pixel
+	 * \param visited Takes a map of bools, with a key that is a pixel. 
+	 */
 	std::tuple<Pixel, bool> JPSJump(Pixel& current, 
 										int dx, 
 										int dy, 
 										std::unordered_map< Pixel, Pixel >& came_from,
-										std::unordered_map< Pixel, float>& cost_so_far);
+										std::unordered_map< Pixel, double >& cost_so_far,
+										std::unordered_map< Pixel, int >& visited);
 
 	/**
 	 * Finds all walkable neighbors for a given pixel.
@@ -304,26 +321,26 @@ private:
 	 * Gets the heuristic value between two pixels (Euclidean distance)
 	 *\param goal The end pixel
 	 *\param current The current pixel being examined
-	 *\returns A float with a value representing the heuristic cost. 
+	 *\returns A double with a value representing the heuristic cost. 
 	 */
-	float GetHeuristicCost(Pixel goal, Pixel current);
+	double GetHeuristicCost(Pixel goal, Pixel current);
 
 	/**
 	 * Gets the heuristic value between two pixels (Manhatten Distance)
 	 *\param goal The end pixel
 	 *\param current The current pixel being examined
-	 *\returns A float with a value representing the heuristic cost. 
+	 *\returns A double with a value representing the heuristic cost. 
 	 */
-	float GetHeuristicManhattenCost(Pixel goal, Pixel current);
+	double GetHeuristicManhattenCost(Pixel goal, Pixel current);
 
 	/**
 	 * Gets the weighted movement cost between two pixels
 	 *\attention Only returns the correct cost if two pixels are within 1 step of each other.
 	 *\param neighbor The end pixel
 	 *\param current The current pixel being examined
-	 *\returns A float with a value representing the weighted cost. 
+	 *\returns A double with a value representing the weighted cost. 
 	 */
-	float GetWeightedCost(Pixel neighbor, Pixel current);
+	double GetWeightedCost(Pixel neighbor, Pixel current);
 	/**
 	 * Colors all entrances for the clusters in a given maze at the given lvl
 	 *\param hpamaze An instantiated version of HPAMaze
@@ -363,10 +380,13 @@ private:
 	bool m_startFound;
 	bool m_endFound;
 
+	bool m_RunningTests = false;
+
 	std::string m_name; ///The name of the file being run. 
 
 	inline static const std::string exampleFolder = "../../examples/";
+	inline static const std::string testsFolder = "../../tests/";
 
-	inline static const float SQRT2 = sqrt(2.0f);
+	inline static const double SQRT2 = sqrt(2.0f);
 };
 } //End of namespace Eng

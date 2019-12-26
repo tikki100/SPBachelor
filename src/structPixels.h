@@ -42,7 +42,7 @@ namespace Eng
 	struct WeightedPixel{
 		unsigned int x; ///The x-coordinate
 		unsigned int y; ///The y-coordinate
-		float w; ///The weight
+		double w; ///The weight
 
 		bool operator ==(const WeightedPixel& rhs) const
 		{

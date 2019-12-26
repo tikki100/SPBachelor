@@ -4,13 +4,12 @@
 
 #include "classHPAMaze.h"
 
-#include "classTimer.h"
-
 namespace Eng
 { //Start of Eng
 
 	HPAMaze::HPAMaze(CImg<unsigned char> * imgFile, unsigned int maxLevel, unsigned int clusterSize, Pixel start, Pixel end)
 	{
+		Timer t("Preprocessing");
 		this->depth = maxLevel;
 		this->img = imgFile;
 
@@ -21,11 +20,11 @@ namespace Eng
 		unsigned int width, height;
 
 		if(!this->IsWalkable(start) || !this->IsWalkable(end))
-			throw std::invalid_argument( "Start or end pxiel is not walkable" );
+			throw std::invalid_argument( "HPA: Start or end pixel is not walkable" );
 
 		for (int i = 0; i < maxLevel; i++)
 		{
-			std::cout << "Creating clusters for level " << i << std::endl;
+			//std::cout << "Creating clusters for level " << i << std::endl;
 			//For each level in the map, the cluster size grows larger,
 			//since our abstraction map grows larger. We therefore increase
 			//the clustersize by a randomly chosen integer - in this chase,
@@ -101,7 +100,7 @@ namespace Eng
 
 		//Build paths inside the clusters (INTRA edges)
 
-		std::cout << "Build a total of " << resClusters.size() << " clusters." << std::endl;
+		//std::cout << "Build a total of " << resClusters.size() << " clusters." << std::endl;
 
 		for(Cluster& cluster : resClusters)
 		{
@@ -359,9 +358,10 @@ namespace Eng
 
 	std::unordered_map<Pixel, Pixel> HPAMaze::AbstractPathfind(unsigned int lvl)
 	{
+		Timer t("Pathfinding");
 		std::priority_queue<WeightedPixel> queue;
 		std::unordered_map< Pixel, Edge > came_from;
-		std::unordered_map< Pixel, float > cost_so_far;
+		std::unordered_map< Pixel, double > cost_so_far;
 
 		cost_so_far.insert_or_assign(this->start, 0);
 
@@ -383,11 +383,11 @@ namespace Eng
 			for(Edge& edge : edges)
 			{
 				Pixel neighbour = edge.e;
-				float new_weight = cost_so_far[current] + edge.w;
+				double new_weight = cost_so_far[current] + edge.w;
 				if(cost_so_far.count(neighbour) == 0 || new_weight < cost_so_far[neighbour])
 				{
 					cost_so_far.insert_or_assign(neighbour, new_weight);
-					float priority = new_weight + this->GetHeuristicCost(this->goal, neighbour);
+					double priority = new_weight + this->GetHeuristicCost(this->goal, neighbour);
 					WeightedPixel neigh_weighted = {neighbour.x, neighbour.y, priority};
 					queue.emplace(neigh_weighted);
 					came_from.insert_or_assign(neighbour, edge);
@@ -399,7 +399,7 @@ namespace Eng
 		std::unordered_map< Pixel, Pixel> path;
 		if(foundEnd)
 		{
-			std::cout << "Found end! :D" << std::endl;
+			std::cout << "Found end!" << std::endl;
 
 			Pixel end = this->goal;
 
@@ -419,6 +419,8 @@ namespace Eng
 
 			}
 
+			std::cout << "Final cost of HPA: " << cost_so_far[this->goal] << std::endl;
+
 		}
 		return path;
 
@@ -426,12 +428,12 @@ namespace Eng
 
 	}
 
-	std::tuple<std::unordered_map<Pixel, Pixel>, float> HPAMaze::GetPath(Cluster& c, Pixel start, Pixel end)
+	std::tuple<std::unordered_map<Pixel, Pixel>, double> HPAMaze::GetPath(Cluster& c, Pixel start, Pixel end)
 	{
 		std::priority_queue<WeightedPixel> queue;
 
 		std::unordered_map< Pixel, Pixel> came_from;
-		std::unordered_map< Pixel, float> cost_so_far;
+		std::unordered_map< Pixel, double> cost_so_far;
 
 		came_from.insert_or_assign(start, start);
 		cost_so_far.insert_or_assign(start, 0);
@@ -450,14 +452,14 @@ namespace Eng
 			queue.pop();
 			for(Pixel& neighbor : this->GetPixelNeighbors(current, c))
 			{
-				float cost = 0.0f;
+				double cost = 0.0f;
 				//The cost to move in a straight line is 1, while diagonally is sqrt(2)
 				if((current.x - neighbor.x == 0) || (current.y - neighbor.y == 0))
 					cost = 1.0f;
 				else
 					cost = SQRT2;
 				
-				float new_weight = cost_so_far[current] + cost;
+				double new_weight = cost_so_far[current] + cost;
 
 				if(neighbor == end)
 				{
@@ -474,7 +476,7 @@ namespace Eng
 					if(cost_so_far.count(neighbor) == 0 || new_weight < cost_so_far[neighbor])
 					{
 						cost_so_far.insert_or_assign(neighbor, new_weight);
-						float priority = new_weight + this->GetHeuristicCost(end, neighbor);
+						double priority = new_weight + this->GetHeuristicCost(end, neighbor);
 						WeightedPixel neigh_weighted = {neighbor.x, neighbor.y, priority};
 						queue.emplace(neigh_weighted);
 						came_from.insert_or_assign(neighbor, current);
@@ -484,7 +486,7 @@ namespace Eng
 			}
 		}
 		std::unordered_map< Pixel, Pixel> path;
-		float resWeight = 0.0f;
+		double resWeight = 0.0f;
 		if(foundEnd)
 		{
 			resWeight = cost_so_far[end];
@@ -500,9 +502,12 @@ namespace Eng
 
 	}
 
-	float HPAMaze::GetHeuristicCost(Pixel goal, Pixel current)
+	double HPAMaze::GetHeuristicCost(Pixel goal, Pixel current)
 	{
 		unsigned long long res = 0;
+
+		if(goal == current)
+			return res;
 		//HACK - We are open to an overflow error.
 		//We always want a positive integer, since we use unsigned ints.
 		if(goal.x >= current.x)

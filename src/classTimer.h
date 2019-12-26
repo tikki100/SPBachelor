@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <chrono>
+#include <string>
 
 //Code by The Cherno
 //https://www.youtube.com/watch?v=YG4jexlSAjc
@@ -9,8 +10,9 @@ namespace Eng
 class Timer
 {
 public:
-	Timer()
+	Timer(std::string name)
 	{
+		m_fileName = name;
 		m_StartTimepoint = std::chrono::high_resolution_clock::now();
 	}
 
@@ -28,10 +30,11 @@ public:
 		auto duration = end - start;
 		double ms = duration * 0.001;
 
-		std::cout << duration << "us (" << ms << "ms)" << std::endl;
+		std::cout << m_fileName << ": " << duration << "us (" << ms << "ms)" << std::endl;
 	}
 private:
 	std::chrono::time_point< std::chrono::high_resolution_clock > m_StartTimepoint;
+	std::string m_fileName;
 
 };//End of class Timer
 }//End of namespace Eng

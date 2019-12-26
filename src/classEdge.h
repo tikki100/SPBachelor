@@ -34,9 +34,9 @@ public:
 
 	Pixel s; ///The starting pixel
 	Pixel e; ///The end pixel
-	float w; ///The weight pixel
+	double w; ///The weight pixel
 
-	void Set(Pixel s, Pixel e, float w, EdgeType t){
+	void Set(Pixel s, Pixel e, double w, EdgeType t){
 		this->s = s;
 		this->e = e;
 		this->w = w;

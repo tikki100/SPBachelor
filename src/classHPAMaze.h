@@ -15,6 +15,8 @@ using namespace cimg_library;
 #include "structPixels.h"
 #include "classCluster.h"
 
+#include "classTimer.h"
+
 namespace Eng
 {
 /**
@@ -120,16 +122,16 @@ private:
 	 * \param end The second pixel from which we wish to pathfind to.
 	 * \return A tuple. The first is a map, containing the path. The second is the weight of the path. 
 	 */
-	std::tuple<std::unordered_map<Pixel, Pixel>, float> GetPath(Cluster& c, Pixel start, Pixel end);
+	std::tuple<std::unordered_map<Pixel, Pixel>, double> GetPath(Cluster& c, Pixel start, Pixel end);
 	//TODO
 	void CreateAbstractBorderEntrances(Cluster& c1, Cluster& c2, LocCluster loc);
 	/**
 	 * Gets the heuristic cost between a goal pixel and our current pixel.
 	 * \param goal The pixel which is our goal.
 	 * \param current The pixel from which we are examining.
-	 * \return A float in which the euclidean distance is contained.
+	 * \return A double in which the euclidean distance is contained.
 	 */
-	float GetHeuristicCost(Pixel goal, Pixel current);
+	double GetHeuristicCost(Pixel goal, Pixel current);
 	/**
 	 * Tests if we can walk on a pixel.
 	 * \param p The pixel which we want to test.
@@ -148,7 +150,7 @@ private:
 
 	unsigned int depth; ///
 
-	inline static const float SQRT2 = sqrt(2.0f);
+	inline static const double SQRT2 = sqrt(2.0f);
 
 }; //End of class HPAMaze
 

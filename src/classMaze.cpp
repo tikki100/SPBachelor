@@ -54,7 +54,7 @@ bool Maze::FindPoints()
 	        	this->m_Sy = y;
 	        	this->m_Start = {m_Sx, m_Sy};
 	        	this->m_startFound = true;
-	        	std::cout << "Found starting pixel at {" << x << "," << y << "}" << std::endl;
+	        	//std::cout << "Found starting pixel at {" << x << "," << y << "}" << std::endl;
         	}
         	else
         	{
@@ -67,7 +67,7 @@ bool Maze::FindPoints()
 	        	this->m_Ey = y;
 	        	this->m_End = {m_Ex,m_Ey};
 	        	this->m_endFound = true;
-	        	std::cout << "Found end pixel at {" << x << "," << y << "}" << std::endl;
+	        	//std::cout << "Found end pixel at {" << x << "," << y << "}" << std::endl;
 	       	}
 	       	else
 	       	{
@@ -167,10 +167,12 @@ void Maze::ColorPixel(unsigned int x, unsigned int y, RGB color)
 
 void Maze::RunBreadth(bool display, unsigned int scalar, bool saveResult)
 {
-	std::cout << "Running Breadth!" << std::endl;
+	//std::cout << "Running breadth!" << std::endl;
 	std::queue<Pixel> queue;
 	std::unordered_map<Pixel, Pixel> came_from;
-	std::unordered_map<Pixel, float> cost_so_far;
+	std::unordered_map<Pixel, double> cost_so_far;
+
+	RGB path = {255, 0, 0};
 
 	queue.emplace(this->m_Start);
 	came_from.insert_or_assign(this->m_Start, this->m_Start);
@@ -207,11 +209,11 @@ void Maze::RunBreadth(bool display, unsigned int scalar, bool saveResult)
 					cond = 1;
 				for(unsigned int i = 0; i < cond; i++)
 				{
-					this->ColorPixel(current, {255, 0, 0});
+					this->ColorPixel(current, path);
 			        current = came_from[current];
 			        if(current == start)
 			        {
-			        	this->ColorPixel(current, {255, 0, 0});
+			        	this->ColorPixel(current, path);
 			        	break;
 			        }
 				}
@@ -219,8 +221,7 @@ void Maze::RunBreadth(bool display, unsigned int scalar, bool saveResult)
 	    }
 	    if(saveResult)
 	    {
-	    	std::string saveName = this->exampleFolder + this->m_name + "_breadth.png";
-	    	this->img->save(saveName.c_str());
+	    	this->SavePicture("_breadth");
 	    }
 	}
 
@@ -235,14 +236,14 @@ void Maze::RunBreadth(bool display, unsigned int scalar, bool saveResult)
 		}
 		while(current != start)
 		{
-			this->ColorPixel(current, {255, 0, 0});
+			this->ColorPixel(current, path);
 			current = came_from[current];
 		}
-		this->ColorPixel(start, {255, 0, 0});
+		this->ColorPixel(start, path);
 
-		std::string saveName = this->exampleFolder + this->m_name + "_breadth.png";
+		std::cout << "Final cost of Breadth: " << cost_so_far[this->m_End] << std::endl;
 
-		this->img->save(saveName.c_str());
+		this->SavePicture("_breadth");
 	}
 	
 
@@ -250,7 +251,7 @@ void Maze::RunBreadth(bool display, unsigned int scalar, bool saveResult)
 
 void Maze::BreadthStep(std::queue<Pixel>& queue, 
 	                   	std::unordered_map< Pixel, Pixel >& came_from,
-	                   	std::unordered_map< Pixel, float >& cost_so_far)
+	                   	std::unordered_map< Pixel, double >& cost_so_far)
 {
 	RGB grey = {126, 126, 126};
 
@@ -264,12 +265,12 @@ void Maze::BreadthStep(std::queue<Pixel>& queue,
 
 	for(Pixel& neighbor : neighbors)
 	{
-		float new_weight = cost_so_far[current] + this->GetWeightedCost(neighbor, current);
+		double new_weight = cost_so_far[current] + this->GetWeightedCost(neighbor, current);
 
 		if(neighbor == this->m_End)
 		{
 			//Break the loop
-			std::cout << "Found end!" << std::endl;
+			//std::cout << "Found end!" << std::endl;
 			this->m_endFound = true;
 			queue = std::queue<Pixel>();
 			came_from.insert_or_assign(neighbor, current);
@@ -280,7 +281,7 @@ void Maze::BreadthStep(std::queue<Pixel>& queue,
 		{
 			if(came_from.count(neighbor) == 0)
 			{
-				this->ColorPixel(neighbor, grey);
+				//this->ColorPixel(neighbor, grey);
 				came_from.insert_or_assign(neighbor, current);
 				cost_so_far.insert_or_assign(neighbor, new_weight);
 				queue.emplace(neighbor);
@@ -291,11 +292,11 @@ void Maze::BreadthStep(std::queue<Pixel>& queue,
 
 void Maze::RunDijkstra(bool display, unsigned int scalar, bool saveResult)
 {
-	std::cout << "Running Djikstra!" << std::endl;
+	//std::cout << "Running Djikstra!" << std::endl;
 	std::priority_queue<WeightedPixel> queue;
 
 	std::unordered_map<Pixel, Pixel> came_from;
-	std::unordered_map<Pixel, float> cost_so_far;
+	std::unordered_map<Pixel, double> cost_so_far;
 
 	came_from[this->m_Start] = this->m_Start;
 	cost_so_far[this->m_Start] = 0.0f;
@@ -362,6 +363,8 @@ void Maze::RunDijkstra(bool display, unsigned int scalar, bool saveResult)
 		}
 		this->ColorPixel(start, {255, 0, 0});
 
+		std::cout << "Final cost of Dijksta: " << cost_so_far[this->m_End] << std::endl;
+
 		this->SavePicture("_dijkstra");
 
 	}
@@ -369,7 +372,7 @@ void Maze::RunDijkstra(bool display, unsigned int scalar, bool saveResult)
 
 void Maze::DijkstraStep(std::priority_queue<WeightedPixel>& queue, 
 	                   		std::unordered_map< Pixel, Pixel >& came_from,
-	                   		std::unordered_map< Pixel, float>& cost_so_far)
+	                   		std::unordered_map< Pixel, double>& cost_so_far)
 {
 	RGB grey = {126, 126, 126};
 
@@ -385,14 +388,17 @@ void Maze::DijkstraStep(std::priority_queue<WeightedPixel>& queue,
 
 	for(Pixel& neighbor : neighbors)
 	{
-		float new_weight = cost_so_far[current] + this->GetWeightedCost(neighbor, current);
+		int dx = neighbor.x - current.x;
+		int dy = neighbor.y - current.y;
+
+		double new_weight = cost_so_far[current] + this->GetWeightedCost(neighbor, current);
 
 		//std::cout << "Checking: {" << neighbor.x << "," << neighbor.y << "}" << std::endl;
 
-		if(neighbor == m_End)
+		if(neighbor == m_End && (this->IsWalkable(current.x + dx, current.y) || this->IsWalkable(current.x, current.y+dy)))
 		{
 			//Break the loop
-			std::cout << "Found end!" << std::endl;
+			//std::cout << "Found end!" << std::endl;
 			this->m_endFound = true;
 			came_from.insert_or_assign(neighbor, current);
 			cost_so_far.insert_or_assign(neighbor, new_weight);
@@ -401,13 +407,16 @@ void Maze::DijkstraStep(std::priority_queue<WeightedPixel>& queue,
 		}
 		else
 		{
-			this->ColorPixel(neighbor, grey);
+			//this->ColorPixel(neighbor, grey);
 			if(cost_so_far.count(neighbor) == 0 || new_weight < cost_so_far[neighbor])
 			{
-				cost_so_far.insert_or_assign(neighbor,new_weight);
-				WeightedPixel neigh_weighted = {neighbor.x, neighbor.y, new_weight};
-				queue.emplace(neigh_weighted);
-				came_from.insert_or_assign(neighbor,current);
+				if(this->IsWalkable(current.x + dx, current.y) || this->IsWalkable(current.x, current.y+dy))
+				{
+					cost_so_far.insert_or_assign(neighbor,new_weight);
+					WeightedPixel neigh_weighted = {neighbor.x, neighbor.y, new_weight};
+					queue.emplace(neigh_weighted);
+					came_from.insert_or_assign(neighbor,current);
+				}
 			}
 
 		}
@@ -416,11 +425,13 @@ void Maze::DijkstraStep(std::priority_queue<WeightedPixel>& queue,
 
 void Maze::RunAStar(bool display, unsigned int scalar, bool saveResult)
 {
-	std::cout << "Running A*!" << std::endl;
+	//std::cout << "Running A*!" << std::endl;
 	std::priority_queue<WeightedPixel> queue;
 
+	RGB path = {255, 0, 0};
+
 	std::unordered_map< Pixel, Pixel> came_from;
-	std::unordered_map< Pixel, float> cost_so_far;
+	std::unordered_map< Pixel, double> cost_so_far;
 
 	came_from.insert_or_assign(this->m_Start, this->m_Start);
 	cost_so_far.insert_or_assign(this->m_Start, 0);
@@ -457,11 +468,11 @@ void Maze::RunAStar(bool display, unsigned int scalar, bool saveResult)
 					cond = 1;
 				for(int i = 0; i < 1*cond; i++)
 				{
-					this->ColorPixel(current, {255, 0, 0});
+					this->ColorPixel(current, path);
 			        current = came_from[current];
 			        if(current == start)
 			        {
-			        	this->ColorPixel(current, {255, 0, 0});
+			        	this->ColorPixel(current, path);
 			        }
 			        if(queue.empty() || current == start)
 						break;
@@ -482,10 +493,12 @@ void Maze::RunAStar(bool display, unsigned int scalar, bool saveResult)
 		}
 		while(current != start)
 		{
-			this->ColorPixel(current, {255, 0, 0});
+			this->ColorPixel(current, path);
 			current = came_from[current];
 		}
-		this->ColorPixel(start, {255, 0, 0});
+		this->ColorPixel(start, path);
+
+		std::cout << "Final cost of A Star: " << cost_so_far[this->m_End] << std::endl;
 
 		this->SavePicture("_astar");
 	}
@@ -493,7 +506,7 @@ void Maze::RunAStar(bool display, unsigned int scalar, bool saveResult)
 
 void Maze::AStarStep(std::priority_queue<WeightedPixel>& queue, 
 	                   		std::unordered_map< Pixel, Pixel >& came_from,
-	                   		std::unordered_map< Pixel, float>& cost_so_far)
+	                   		std::unordered_map< Pixel, double>& cost_so_far)
 {
 	RGB grey = {126, 126, 126};
 
@@ -509,12 +522,15 @@ void Maze::AStarStep(std::priority_queue<WeightedPixel>& queue,
 
 	for(Pixel& neighbor : neighbors)
 	{
-		float new_weight = cost_so_far[current] + this->GetWeightedCost(neighbor, current);
+		double new_weight = cost_so_far[current] + this->GetWeightedCost(neighbor, current);
 
-		if(neighbor == this->m_End)
+		int dx = neighbor.x - current.x;
+		int dy = neighbor.y - current.y;
+
+		if(neighbor == this->m_End && (this->IsWalkable(current.x + dx, current.y) || this->IsWalkable(current.x, current.y+dy)))
 		{
 			//Break the loop
-			std::cout << "Found end!" << std::endl;
+			//std::cout << "Found end!" << std::endl;
 			this->m_endFound = true;
 			came_from.insert_or_assign(neighbor, current);
 			cost_so_far.insert_or_assign(neighbor,new_weight);
@@ -523,14 +539,17 @@ void Maze::AStarStep(std::priority_queue<WeightedPixel>& queue,
 		}
 		else
 		{
-			this->ColorPixel(neighbor, grey);
+			//this->ColorPixel(neighbor, grey);
 			if((cost_so_far.count(neighbor) == 0) || (new_weight < cost_so_far[neighbor]))
 			{
-				cost_so_far.insert_or_assign(neighbor, new_weight);
-				float priority = new_weight + this->GetHeuristicCost(m_End, neighbor);
-				WeightedPixel neigh_weighted = {neighbor.x, neighbor.y, priority};
-				queue.emplace(neigh_weighted);
-				came_from.insert_or_assign(neighbor,current);
+				if(this->IsWalkable(current.x + dx, current.y) || this->IsWalkable(current.x, current.y+dy))
+				{
+					cost_so_far.insert_or_assign(neighbor, new_weight);
+					double priority = new_weight + this->GetHeuristicCost(m_End, neighbor);
+					WeightedPixel neigh_weighted = {neighbor.x, neighbor.y, priority};
+					queue.emplace(neigh_weighted);
+					came_from.insert_or_assign(neighbor,current);
+				}
 			}
 
 		}
@@ -543,6 +562,8 @@ void Maze::RunHPAStar(unsigned int clusterSize, unsigned int lvls, bool display,
 
 	std::vector<std::vector<Cluster>> levels = hpamaze.GetClusters();
 
+
+
 	RGB pink = {255, 0, 255};
 	RGB red = {255, 0, 0};
 
@@ -552,7 +573,7 @@ void Maze::RunHPAStar(unsigned int clusterSize, unsigned int lvls, bool display,
 
 	std::unordered_map<Pixel, Pixel> path = hpamaze.AbstractPathfind(0);
 
-	std::cout << "Getting color:" << (this->GetColor(30, 30)) << std::endl;
+	//std::cout << "Getting color:" << (this->GetColor(30, 30)) << std::endl;
 
 	//std::cout << "Path size: " << path.size() << std::endl;
 
@@ -564,13 +585,13 @@ void Maze::RunHPAStar(unsigned int clusterSize, unsigned int lvls, bool display,
 
 void Maze::RunJPS(bool display, unsigned int scalar, bool saveResult)
 {
-	std::cout << "Running JPS!" << std::endl;
+	//std::cout << "Running JPS!" << std::endl;
 
 	std::priority_queue<WeightedPixel> queue;
 
 	std::unordered_map< Pixel, Pixel> came_from;
-	std::unordered_map< Pixel, bool> visited;
-	std::unordered_map< Pixel, float> cost_so_far;
+	std::unordered_map< Pixel, int> visited;
+	std::unordered_map< Pixel, double> cost_so_far;
 
 	RGB path = {255, 0, 0};
 
@@ -589,22 +610,21 @@ void Maze::RunJPS(bool display, unsigned int scalar, bool saveResult)
 		CImgDisplay main_disp((*this->img),"JPS Search", 0);
 		while (!main_disp.is_closed()) 
 	    {
-	    	main_disp.resize(360,390).display((*this->img));
+	    	main_disp.resize(this->img->width()*3,this->img->height()*3).display((*this->img));
 
 			if(scalar == 0) 
 				scalar = 1;
 
-			if(!queue.empty() && this->m_endFound != true)
+			if(!queue.empty())
 			{
 				for(int i = 0; i < 1*scalar; i++)
 				{
 					this->JPSStep(queue, came_from, cost_so_far, visited);
-					if(queue.empty() || this->m_endFound == true)
+					if(queue.empty())
 						break;
 				}
 			}
-
-			else if(this->m_endFound && current != start)
+			else if(queue.empty() && this->m_endFound && current != start)
 			{
 				unsigned int cond = (1 * scalar/100);
 				if (cond == 0)
@@ -612,6 +632,7 @@ void Maze::RunJPS(bool display, unsigned int scalar, bool saveResult)
 				for(int i = 0; i < 1*cond; i++)
 				{
 					this->ColorPixel(current, path);
+					//std::cout << "c " << current << " <- " << came_from[current] << "w: "<< cost_so_far[current] << std::endl;
 			        current = came_from[current];
 			        if(current == start)
 			        {
@@ -622,7 +643,7 @@ void Maze::RunJPS(bool display, unsigned int scalar, bool saveResult)
 		    	}
 			}
 	    }
-
+	    std::cout << "Final cost of  JPS: " << cost_so_far[this->m_End] << std::endl;
 	    if(saveResult)
 	    {
 	    	this->SavePicture("_JPS");
@@ -633,16 +654,22 @@ void Maze::RunJPS(bool display, unsigned int scalar, bool saveResult)
 	{
 
 
-		while(!queue.empty() && this->m_endFound == false)
+		while(!queue.empty())
 		{
 			this->JPSStep(queue, came_from, cost_so_far, visited);
 		}
+
+		double controlWeight = 0;
 		while(current != start)
 		{
+			//std::cout << current << " <- " << came_from[current] << " w: " << cost_so_far[current] << std::endl;
 			this->ColorPixel(current, path);
+			Pixel old = current;
 			current = came_from[current];
 		}
 		this->ColorPixel(start, path);
+
+		std::cout << "Final cost of  JPS: " << cost_so_far[this->m_End] << std::endl;
 
 		this->SavePicture("_JPS");
 	}
@@ -651,8 +678,8 @@ void Maze::RunJPS(bool display, unsigned int scalar, bool saveResult)
 
 void Maze::JPSStep(std::priority_queue<WeightedPixel>& queue, 
 	                   		std::unordered_map< Pixel, Pixel >& came_from,
-	                   		std::unordered_map< Pixel, float >& cost_so_far,
-	                   		std::unordered_map< Pixel, bool >& visited ){
+	                   		std::unordered_map< Pixel, double >& cost_so_far,
+	                   		std::unordered_map< Pixel, int >& visited ){
 
 	RGB purple = {255, 0, 255};
 
@@ -664,44 +691,102 @@ void Maze::JPSStep(std::priority_queue<WeightedPixel>& queue,
 	WeightedPixel coords = queue.top();
 	Pixel current = {coords.x, coords.y};
 
-	this->ColorPixel(current, purple);
+	//if(debugPixel == current)
+	//	debug = true;
+	//if(debug)
+		//this->ColorPixel(current, purple);
 
 	queue.pop();
 
+	visited.insert_or_assign(current, 2);
+
+	if(current == this->m_End)
+	{
+		return;
+	}
+
 	if(debug)
 		std::cout << "\nRunning on next jump point " << current << " came_from " << came_from[current] << std::endl;
+
 	std::vector<Pixel> neighbors = this->JPSPrunedNeighbors(current, came_from);
 	
 	for(Pixel neighbor : neighbors)
 	{
-		if(this->m_endFound == true)
-			break;
 		int dx = neighbor.x - current.x;
 		int dy = neighbor.y - current.y;
-		float new_weight = cost_so_far[current] + this->GetWeightedCost(neighbor, current);
-		if(debug)
-			std::cout << "Setting " << neighbor << " to come from " << current << std::endl;
-		came_from.insert_or_assign(neighbor, current);
-		cost_so_far.insert_or_assign(neighbor, new_weight);
+		double new_weight = cost_so_far[current] + this->GetWeightedCost(neighbor, current);
 
-		auto [n, JPFound] = this->JPSJump(neighbor, dx, dy, came_from, cost_so_far);
+		/*if(debug)
+			std::cout << "Setting " << current << " to " << neighbor << " vis: " << (visited[neighbor]) << " w: " << new_weight << " < c: " << cost_so_far[neighbor] << std::endl;
+			*/
+		if(visited[neighbor] == 2)
+			continue;
 
+		//cost_so_far.insert_or_assign(neighbor, new_weight);
+		//came_from.insert_or_assign(neighbor, current);
+
+		auto [n, JPFound] = this->JPSJump(neighbor, dx, dy, came_from, cost_so_far, visited);
+		
 		if(JPFound)
 		{	
-			if(debug)
-				std::cout << "Found JP! " << n << std::endl;
-			float priority = cost_so_far[n] + this->GetHeuristicCost(m_End, n);
-			WeightedPixel neigh_weighted = {n.x, n.y, priority};
-			if(visited.count(n) == 0 || new_weight < cost_so_far[n])
+			if(visited[n] == 2)
+				continue;
+
+			if(!(visited[n] == 1) || new_weight < cost_so_far[n] || cost_so_far[n] == 0)
 			{
-				visited.insert_or_assign(n, true);
-				cost_so_far.insert_or_assign(n, new_weight);
-				queue.emplace(neigh_weighted);
+				Pixel pathCur = current;
 				if(debug)
-					std::cout << "Adding " << n << " to the queue!" << std::endl;
+					std::cout << "Starting at pathCur: " << pathCur << std::endl;
+
+				bool foundPath = false;
+
+				while(foundPath == false)
+				{
+					Pixel newCur = {pathCur.x + dx, pathCur.y + dy};
+					double nW = cost_so_far[pathCur] + this->GetWeightedCost(newCur, pathCur);
+
+					if(visited[newCur] == 0 || nW < cost_so_far[newCur])
+					{
+						if(debug)
+							std::cout << "New: " << newCur << " w: " << nW << std::endl;
+						came_from.insert_or_assign(newCur, pathCur);
+						cost_so_far.insert_or_assign(newCur, nW);
+						pathCur = newCur;
+					}
+					else
+					{
+						break;
+					}
+
+					if(pathCur == n)
+						foundPath = true;
+				}
+
+				if(foundPath == false)
+					continue;
+
+				double priority = cost_so_far[n] + this->GetHeuristicCost(m_End, n);
+				WeightedPixel neigh_weighted = {n.x, n.y, priority};
+
+				if(n == this->m_End)
+				{
+					if(debug)
+						std::cout << "Found end, terminating" << std::endl;
+					this->m_endFound = true;
+					//queue = std::priority_queue<WeightedPixel>();
+					return;
+				}
+
+				if(!(visited[n] == 1))
+				{
+					visited.insert_or_assign(n, 1);
+					if(debug)
+						std::cout << "Found JP! Adding " << n << " to the queue with w: " << cost_so_far[n] << std::endl;
+					queue.emplace(neigh_weighted);
+				}
 			}
-		
 		}
+	
 	}
 }
 
@@ -709,31 +794,42 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current,
 										 int dx, 
 										 int dy, 
 										 std::unordered_map< Pixel, Pixel >& came_from,
-										  std::unordered_map< Pixel, float>& cost_so_far)
+										 std::unordered_map< Pixel, double >& cost_so_far,
+										 std::unordered_map< Pixel, int > & visited)
 {
 
 	Pixel New = {current.x + dx, current.y + dy};
 
 	bool debug = false;
+    if(dx < -1 || 1 < dx)
+    	throw std::invalid_argument( "dx was out of range in JPSJump" );
+    if(dy < -1 || 1 < dy)
+    	throw std::invalid_argument( "dy was out of range in JPSJump" );
 
 	if(debug)
 		std::cout << "Jumping over " << current << " with dx: " << dx << " dy: " << dy << std::endl;
 
 	if(this->m_endFound)
-		return std::tuple(current, false);
-
-
-	if(current == this->m_End)
 	{
-		std::cout << "Found end!" << std::endl;
-		this->m_endFound = true;
-		return std::tuple(current, true);
+		if(debug)
+			std::cout << "End found, returning false" << std::endl;
+		return std::tuple(current, false);
 	}
 
 	if(!this->IsWalkable(current))
 	{
-		//std::cout << "Pixel is not walkable" << std::endl;
+		if(debug)
+			std::cout << "Pixel is not walkable" << std::endl;
 		return std::tuple(current, false);
+	}
+
+	if(current == this->m_End)
+	{
+		if(debug)
+			std::cout << "Found end!" << std::endl;
+
+		this->m_endFound = true;
+		return std::tuple(current, true);
 	}
 
 	//Check for forced neighbours.
@@ -768,30 +864,46 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current,
 			}
 		}
 		bool xt = false, yt = false;
-		if(!(current.y == 0 && dy == -1)
-			&& !(current.y + dy == this->img->height()))
-		{
-			Pixel NewDY = {current.x, current.y + dy};
-			came_from.insert_or_assign(NewDY, current);
-			auto [ __ , _yt ] = this->JPSJump(NewDY, 0, dy, came_from, cost_so_far);
-			yt = _yt;
-			if(debug)
-				std::cout << "Finished dy diagonal with " << yt << std::endl;
-		}
 
 		if(!(current.x == 0 && dx == -1)
 			&& !(current.x + dx == this->img->width()))
 		{
 			Pixel NewDX = {current.x + dx, current.y};
+
+			/*double new_weight = cost_so_far[current] + this->GetWeightedCost(NewDX, current);
+
 			came_from.insert_or_assign(NewDX, current);
-			auto [ _ , _xt ] = this->JPSJump(current, dx, 0, came_from, cost_so_far);
+			cost_so_far.insert_or_assign(NewDX, new_weight);*/
+
+			auto [ _ , _xt ] = this->JPSJump(current, dx, 0, came_from, cost_so_far,visited);
 			xt = _xt;
 			if(debug)
 				std::cout << "Finished dx diagonal with " << xt << std::endl;
 		}
 
+		if(!(current.y == 0 && dy == -1)
+			&& !(current.y + dy == this->img->height()))
+		{
+			Pixel NewDY = {current.x, current.y + dy};
+
+			/*double new_weight = cost_so_far[current] + this->GetWeightedCost(NewDY, current);
+
+			came_from.insert_or_assign(NewDY, current);
+			cost_so_far.insert_or_assign(NewDY, new_weight);*/
+
+			auto [ __ , _yt ] = this->JPSJump(NewDY, 0, dy, came_from, cost_so_far, visited);
+			yt = _yt;
+			if(debug)
+				std::cout << "Finished dy diagonal with " << yt << std::endl;
+		}
+
 		if(xt || yt)
 		{
+			//If we find the end on a diagonal, we still need to search for it normally.
+			if(this->m_endFound == true) 
+			{
+				this->m_endFound = false;
+			}
 			if(debug)
 				std::cout << "Added " << current << " due to jump either xt or yt" << std::endl;
 			return std::tuple(current, true);
@@ -868,14 +980,15 @@ std::tuple<Pixel, bool> Maze::JPSJump(Pixel& current,
 		&& !(current.y == 0 && dy == -1)
 		&& !(current.y + dy == this->img->height()))
 	{
-		if(this->IsWalkable(current.x + dx, current.y) || this->IsWalkable(current.x, current.y + dy))
+		if((this->IsWalkable(current.x + dx, current.y) || this->IsWalkable(current.x, current.y + dy)))
 		{
-			float new_weight = cost_so_far[current] + this->GetWeightedCost(New, current);
-			if(debug)
-				std::cout << "Setting " << New << " to come from " << current << std::endl;
-			came_from.insert_or_assign(New, current);
-			cost_so_far.insert_or_assign(New, new_weight);
-			return this->JPSJump(New, dx, dy, came_from, cost_so_far);
+			//double new_weight = cost_so_far[current] + this->GetWeightedCost(New, current);
+			//std::cout << "Updating " << New << " from " << cost_so_far[New] << " to " << new_weight << " status: " << visited[New] << std::endl;
+			//came_from.insert_or_assign(New, current);
+			//cost_so_far.insert_or_assign(New, new_weight);
+
+			return this->JPSJump(New, dx, dy, came_from, cost_so_far, visited);
+
 		}
 		else
 		{
@@ -904,10 +1017,15 @@ std::vector<Pixel> Maze::JPSPrunedNeighbors(Pixel current,
 
 	std::vector<Pixel> res;
 
-	res.reserve(3);
+	res.reserve(4);
 
 	int dx = current.x - came_from[current].x;
     int dy = current.y - came_from[current].y;
+
+    if(dx < -1 || 1 < dx)
+    	throw std::invalid_argument( "dx was out of range in JPSPrunedNeighbors" );
+    if(dy < -1 || 1 < dy)
+    	throw std::invalid_argument( "dy was out of range in JPSPrunedNeighbors" );
 
     if(debug)
     	std::cout << "Getting pruned for " << current << " dx: " << dx << " dy: " << dy << std::endl;
@@ -968,21 +1086,21 @@ std::vector<Pixel> Maze::JPSPrunedNeighbors(Pixel current,
     else //We're moving diagonally
     {
     	bool _withinYAxis = false, _withinXAxis = false; //Bounds check for our 3rd pixel;
-    	if(!(dy == -1 && current.y == 0)
-    		&& !(current.y + dy == this->img->height()))
-    	{
-    		_withinYAxis = true;
-    		Pixel Next = {current.x, current.y + dy};
-    		if(this->IsWalkable(Next) || Next == this->m_End)
-    		{
-    			res.emplace_back(Next);
-    		}
-    	}
     	if(!(dx == -1 && current.x == 0)
     		&& !(current.x + dx == this->img->width()) )
     	{
     		_withinXAxis = true;
     		Pixel Next = {current.x + dx, current.y};
+    		if(this->IsWalkable(Next) || Next == this->m_End)
+    		{
+    			res.emplace_back(Next);
+    		}
+    	}
+    	if(!(dy == -1 && current.y == 0)
+    		&& !(current.y + dy == this->img->height()))
+    	{
+    		_withinYAxis = true;
+    		Pixel Next = {current.x, current.y + dy};
     		if(this->IsWalkable(Next) || Next == this->m_End)
     		{
     			res.emplace_back(Next);
@@ -1044,7 +1162,7 @@ void Maze::ColorClusterEntrances(HPAMaze& hpamaze, RGB& color, unsigned int lvl)
 	if(lvl > levels.size() || lvl == 0)
 		throw std::invalid_argument( "Attempted to do ColorClusterEntrances on a lvl that does not exist" );
 
-	std::cout << "Coloring clusters in level " << lvl << std::endl;
+	//std::cout << "Coloring clusters in level " << lvl << std::endl;
 	for (const std::vector<Cluster>& level : levels)
 	{
 		for (const Cluster& cluster : level)
@@ -1072,7 +1190,7 @@ void Maze::ColorClusterIntraPaths(HPAMaze& hpamaze, RGB& color, unsigned int lvl
 	if(lvl > levels.size() || lvl == 0)
 		throw std::invalid_argument( "Attempted to do ColorClusterEntrances on a lvl that does not exist" );
 
-	std::cout << "Coloring intra paths in level " << lvl << std::endl;
+	//std::cout << "Coloring intra paths in level " << lvl << std::endl;
 
 	unsigned int currentLvl = 1;
 	for (std::vector<Cluster> level : levels)
@@ -1116,7 +1234,7 @@ void Maze::ColorHPAPath(HPAMaze& hpamaze, RGB& color, std::unordered_map<Pixel, 
 }
 
 
-float Maze::GetHeuristicCost(Pixel goal, Pixel current)
+double Maze::GetHeuristicCost(Pixel goal, Pixel current)
 {
 	//Euclidean Distance
 	// sqrt(|x2 - x1|^2 + |y2 - y1|^2)
@@ -1148,11 +1266,11 @@ float Maze::GetHeuristicCost(Pixel goal, Pixel current)
 
 }
 
-float Maze::GetHeuristicManhattenCost(Pixel goal, Pixel current)
+double Maze::GetHeuristicManhattenCost(Pixel goal, Pixel current)
 {
 	// Manhatten distance
 	// |x2 - x1| + |y2 - y1|
-	float res = 0; 
+	double res = 0; 
 	if(goal.x >= current.x)
 	{
 		  res += goal.x - current.x;
@@ -1174,9 +1292,9 @@ float Maze::GetHeuristicManhattenCost(Pixel goal, Pixel current)
 
 }
 
-float Maze::GetWeightedCost(Pixel neighbor, Pixel current)
+double Maze::GetWeightedCost(Pixel neighbor, Pixel current)
 {
-	float cost = 0.0f;
+	double cost = 0.0f;
 	if(neighbor == current)
 		return cost;
 
@@ -1192,8 +1310,51 @@ float Maze::GetWeightedCost(Pixel neighbor, Pixel current)
 
 void Maze::Test()
 {
+	RGB Black = {0, 0, 0};
+	RGB White = {255, 255, 255};
+	/*
+	//Makes ca. 10% of pixels to obstacles
+	srand (time(NULL));
 
-	
+	for(unsigned int x = 0; x < this->img->width() ; x++)
+	{
+		for(unsigned int y = 0; y < this->img->height(); y++)
+		{
+			int randNumber = rand() % 100 + 1;
+			Pixel cur = {x,y};
+			if(randNumber <= 15 && cur != this->m_Start && cur != this->m_End)
+			{
+				this->ColorPixel(cur, Black);
+			}
+		}
+	}
+
+	this->SavePicture("_random");
+	*/
+	int divisor = 10;
+
+	for(unsigned int x = 0; x < this->img->width(); x++)
+	{
+		for(unsigned int y = 0; y < this->img->height(); y++)
+		{
+			if(x > this->img->width() - divisor && y > this->img->height() - divisor)
+				continue;
+			Pixel cur = {x,y};
+			if(((x % divisor == 0 || x % divisor == 1 || x % divisor == 2) || (y % divisor == 0 || y % divisor == 1 || y % divisor == 2))
+			  && cur != this->m_Start 
+			  && cur != this->m_End)
+			{
+				this->ColorPixel(cur, White);
+			}
+			else if(cur != this->m_Start && cur != this->m_End)
+			{
+				this->ColorPixel(cur, Black);
+			}
+		}
+	}
+
+	this->SavePicture("_checkered");
+
 
 }
 
@@ -1212,20 +1373,6 @@ std::vector<Pixel> Maze::GetNeighbors(unsigned int x, unsigned int y, bool FindE
 
 		//We need to return horizontal - and vertical neighbours first to ensure
 		//JPS optimality.
-		if(!(y+1 == this->img->height()))
-		{
-			Pixel n = {x , y + 1};
-			if(this->IsWalkable(n) || n == this->m_End)
-				result.emplace_back(n);
-		}
-
-		if(!(y == 0))
-		{
-			Pixel n = {x, y - 1};
-			if(this->IsWalkable(n) || n == this->m_End)
-				result.emplace_back(n);
-		}
-
 		if(!(x + 1 == this->img->width()))
 		{
 			Pixel n = {x + 1, y};
@@ -1236,6 +1383,20 @@ std::vector<Pixel> Maze::GetNeighbors(unsigned int x, unsigned int y, bool FindE
 		if(!(x == 0))
 		{
 			Pixel n = {x - 1, y};
+			if(this->IsWalkable(n) || n == this->m_End)
+				result.emplace_back(n);
+		}
+
+		if(!(y+1 == this->img->height()))
+		{
+			Pixel n = {x , y + 1};
+			if(this->IsWalkable(n) || n == this->m_End)
+				result.emplace_back(n);
+		}
+
+		if(!(y == 0))
+		{
+			Pixel n = {x, y - 1};
 			if(this->IsWalkable(n) || n == this->m_End)
 				result.emplace_back(n);
 		}
@@ -1337,7 +1498,14 @@ std::vector<Pixel> Maze::GetNeighbors(unsigned int x, unsigned int y, bool FindE
 
 void Maze::SavePicture(std::string filename)
 {
-	std::string saveName = this->exampleFolder + this->m_name + filename + ".png";
+	std::string saveName;
+
+	if(this->m_RunningTests)
+		saveName = this->testsFolder + this->m_name + filename + ".png";
+	else
+		saveName = this->exampleFolder + this->m_name + filename + ".png";
+
+
 	this->img->save(saveName.c_str());
 }
 
