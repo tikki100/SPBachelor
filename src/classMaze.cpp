@@ -265,9 +265,12 @@ void Maze::BreadthStep(std::queue<Pixel>& queue,
 
 	for(Pixel& neighbor : neighbors)
 	{
+		int dx = neighbor.x - current.x;
+		int dy = neighbor.y - current.y;
+
 		double new_weight = cost_so_far[current] + this->GetWeightedCost(neighbor, current);
 
-		if(neighbor == this->m_End)
+		if(neighbor == this->m_End &&  (this->IsWalkable(current.x + dx, current.y) || this->IsWalkable(current.x, current.y+dy)))
 		{
 			//Break the loop
 			//std::cout << "Found end!" << std::endl;
@@ -279,12 +282,15 @@ void Maze::BreadthStep(std::queue<Pixel>& queue,
 		}
 		else
 		{
-			if(came_from.count(neighbor) == 0)
+			if( (this->IsWalkable(current.x + dx, current.y) || this->IsWalkable(current.x, current.y+dy)))
 			{
-				//this->ColorPixel(neighbor, grey);
-				came_from.insert_or_assign(neighbor, current);
-				cost_so_far.insert_or_assign(neighbor, new_weight);
-				queue.emplace(neighbor);
+				if(came_from.count(neighbor) == 0)
+				{
+					//this->ColorPixel(neighbor, grey);
+					came_from.insert_or_assign(neighbor, current);
+					cost_so_far.insert_or_assign(neighbor, new_weight);
+					queue.emplace(neighbor);
+				}
 			}
 		}
 	}
