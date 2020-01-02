@@ -1,4 +1,4 @@
-# The Shortest Path Problem In Maze C++ Code
+# The Shortest Path Problem In A Maze C++ Code
 
 This project is the result of a bachelor thesis written on finding the shortest path on a grid.  The project is written in C++ and includes the following algorithms:
 
