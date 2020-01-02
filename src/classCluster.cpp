@@ -13,7 +13,7 @@ namespace Eng
 		{
 			return true;
 		}
-		return false; //TODO
+		return false;
 	}
 
 	bool Cluster::Contains(Pixel& coords){
